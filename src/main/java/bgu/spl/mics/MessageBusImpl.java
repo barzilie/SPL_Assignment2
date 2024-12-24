@@ -21,6 +21,7 @@ public class MessageBusImpl implements MessageBus {
 	private ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadcastSubscribers; //stores subscribers for different broadcast types
 	private ConcurrentHashMap<Event, Future> futures; //stores futures for each event
 	//maybe add a lock object to the queue we are locking???
+	//check about put method: throws exception
 
 	private MessageBusImpl() {
 		microServiceQueues = new ConcurrentHashMap<>();
