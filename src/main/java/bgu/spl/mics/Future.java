@@ -49,7 +49,6 @@ public class Future<T> {
 	public synchronized void resolve (T result) {
 		this.futureObject = result;
 		this.notifyAll();
-		//TODO: implement this.
 	}
 	
 	/**
@@ -57,7 +56,6 @@ public class Future<T> {
      */
 	public synchronized boolean isDone() {
 		return (this.futureObject!=null);
-		//TODO: implement this.
 		//return false;
 	}
 	

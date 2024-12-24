@@ -1,9 +1,10 @@
 package bgu.spl.mics;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -14,19 +15,19 @@ import java.util.concurrent.LinkedBlockingQueue;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
-	private static MessageBusImpl instance;
-	private Map<MicroService, BlockingQueue<Message>> microServiceQueues;
-	private Map<Class<? extends Event>, LinkedList<MicroService>> eventSubscribers;
-	private Map<Class<? extends Broadcast>, List<MicroService>> broadcastSubscribers;
-	//private Map<Event, Future> futures;
-	//private Map<Class<? extends Event>,Integer> roundRobinEventLocation;
+	private static MessageBusImpl instance; //holds the single instance
+	private ConcurrentHashMap<MicroService, BlockingQueue<Message>> microServiceQueues; //stores message queues for each MicroService
+	private ConcurrentHashMap<Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> eventSubscribers; //stores subscribers for different event types
+	private ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadcastSubscribers; //stores subscribers for different broadcast types
+	private ConcurrentHashMap<Event, Future> futures; //stores futures for each event
+	//maybe add a lock object to the queue we are locking???
 
 	private MessageBusImpl() {
-		microServiceQueues = new HashMap<>();
-		eventSubscribers = new HashMap<>();
-		broadcastSubscribers = new HashMap<>();
-		//futures = new HashMap<>();
-		//roundRobinEventLocation = new HashMap<>();
+		microServiceQueues = new ConcurrentHashMap<>();
+		eventSubscribers = new ConcurrentHashMap<>();
+		broadcastSubscribers = new ConcurrentHashMap<>();
+		futures = new ConcurrentHashMap<>();
+		//roundRobinEventLocation = new ConcurrentHashMap<>();
 	}
 	
 	//singleton implementation
@@ -44,74 +45,126 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		synchronized(eventSubscribers){ //why synchronized?
-			List<MicroService> subscribedMicroServices = eventSubscribers.computeIfAbsent(type, k -> new LinkedList<>());
-			subscribedMicroServices.add(m);
-		}
-
+		ConcurrentLinkedQueue<MicroService> subscribedMicroServices = eventSubscribers.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>());
+		subscribedMicroServices.add(m);
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		synchronized(broadcastSubscribers){ //why synchronized?
-			List<MicroService> subscribedMicroServices = broadcastSubscribers.computeIfAbsent(type, k -> new LinkedList<>());
-			subscribedMicroServices.add(m);
-		}
+		ConcurrentLinkedQueue<MicroService> subscribedMicroServices = broadcastSubscribers.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>());
+		subscribedMicroServices.add(m);
 	}
 
 	@Override
+	@SuppressWarnings("unchecked") 
 	public <T> void complete(Event<T> e, T result) {
-		// TODO Auto-generated method stub
-
+		if(futures.get(e) != null) futures.get(e).resolve(result);
+		// futures.remove(e); //does it need to be removed?
 	}
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		List<MicroService> recepients = broadcastSubscribers.get(b.getClass());
-		for(MicroService ms: recepients){
-			microServiceQueues.get(ms).add(b);
+		//synchronized(broadcastSubscribers){} needed?
+		if(broadcastSubscribers.containsKey(b.getClass())){
+			ConcurrentLinkedQueue<MicroService> recepients = broadcastSubscribers.get(b.getClass());
+			if(recepients != null && !recepients.isEmpty()){
+				for(MicroService ms: recepients){
+					BlockingQueue<Message> q = microServiceQueues.get(ms);
+					synchronized(q){ //TODO what happens if already locked? maybe change to wait
+						q.add(b);
+						q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
+					}	
+				}
+			}
 		}
-		
 	}
 
 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		if(eventSubscribers.containsKey(e.getClass())) return null;
-		LinkedList<MicroService> recepients = eventSubscribers.get(e.getClass());
-		if(recepients.isEmpty()) return null;
-		MicroService receiver = roundRobin(recepients);//dont forget to sync this method
-		microServiceQueues.get(receiver).add(e);
-		e.getRecievier
-		
-		// TODO Auto-generated method stub
+		//synchronized(eventSubscribers){} needed?
+		ConcurrentLinkedQueue<MicroService> recepients = eventSubscribers.get(e.getClass());
+		if(eventSubscribers.containsKey(e.getClass()) && recepients != null && !recepients.isEmpty()){
+			Future<T> f = new Future<>();
+			MicroService receiver = roundRobin(recepients);//dont forget to sync this method
+			futures.put(e, f);
+			BlockingQueue<Message> q = microServiceQueues.get(receiver);
+			synchronized(q){ //TODO what happens if already locked? maybe change to wait
+				q.add(e);
+				q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
+			}
+			return f;
+		}
+		complete(e, null);
 		return null;
 	}
 
 	@Override
 	public void register(MicroService m) {
 		microServiceQueues.put(m, new LinkedBlockingQueue<Message>());
+		//do we need to cunscribe here to event\broadcast ? 
 	}
 
 	@Override
-	public void unregister(MicroService m) {
-		// TODO Auto-generated method stub
+	public void unregister(MicroService m) { 
+        for(ConcurrentLinkedQueue<MicroService> q: eventSubscribers.values()){
+			if(q.contains(m)){
+				synchronized(q){
+					q.remove(m);
+				}
+			}
+		}
+		for(ConcurrentLinkedQueue<MicroService> q: broadcastSubscribers.values()){
+			if(q.contains(m)){
+				synchronized(q){
+					q.remove(m);
+				}
+			}
+		}
+		//since no events or broadcasts are subscribed by the MicroService - no one will reach it's queue so no need to synchronize
+        microServiceQueues.remove(m);
+    }
 
-	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		// TODO Auto-generated method stub
+		BlockingQueue<Message> msgq = microServiceQueues.get(m);
+		if(msgq!=null){
+			synchronized(msgq){
+				try{
+					return msgq.take();
+				}
+				catch(InterruptedException e){
+					throw new InterruptedException();
+				}
+			}
+		}
 		return null;
 	}
 
 	//private round-robin implementation
-	private MicroService roundRobin(LinkedList<MicroService> llist){
-		MicroService ms = llist.remove();
-		llist.addLast(ms);
+	private MicroService roundRobin(ConcurrentLinkedQueue<MicroService> microServiceQueue){
+		MicroService ms = microServiceQueue.remove();
+		microServiceQueue.add(ms);
 		return ms;
 	}
 
+	//getters for testings 
+
+	public Map<MicroService, BlockingQueue<Message>> getMicroServiceQueues(){
+		return this.microServiceQueues;
+	}
 	
+	public ConcurrentHashMap<Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> getEventSubscribers(){
+		return this.eventSubscribers;
+	}
+
+	public ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> getBroadcastSubscribers(){
+		return this.broadcastSubscribers;
+	}
+
+	public Map<Event, Future> getFutures(){
+		return this.futures;
+	}
 
 }
