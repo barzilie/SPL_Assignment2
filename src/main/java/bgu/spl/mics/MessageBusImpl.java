@@ -20,6 +20,7 @@ public class MessageBusImpl implements MessageBus {
 	private ConcurrentHashMap<Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> eventSubscribers; //stores subscribers for different event types
 	private ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadcastSubscribers; //stores subscribers for different broadcast types
 	private ConcurrentHashMap<Event, Future> futures; //stores futures for each event
+	//maybe add a lock object to the queue we are locking???
 
 	private MessageBusImpl() {
 		microServiceQueues = new ConcurrentHashMap<>();
@@ -69,7 +70,7 @@ public class MessageBusImpl implements MessageBus {
 			if(recepients != null && !recepients.isEmpty()){
 				for(MicroService ms: recepients){
 					BlockingQueue<Message> q = microServiceQueues.get(ms);
-					synchronized(q){
+					synchronized(q){ //TODO what happens if already locked? maybe change to wait
 						q.add(b);
 						q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
 					}	
@@ -88,7 +89,7 @@ public class MessageBusImpl implements MessageBus {
 			MicroService receiver = roundRobin(recepients);//dont forget to sync this method
 			futures.put(e, f);
 			BlockingQueue<Message> q = microServiceQueues.get(receiver);
-			synchronized(q){
+			synchronized(q){ //TODO what happens if already locked? maybe change to wait
 				q.add(e);
 				q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
 			}
