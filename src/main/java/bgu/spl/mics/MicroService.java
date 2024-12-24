@@ -27,6 +27,7 @@ public abstract class MicroService implements Runnable {
     private final String name;
     private MessageBusImpl mb; 
     private Map<Class<? extends Message>, Callback<Message>> callbacks;
+    private int currentTick; //should it be here? and all services will take time from here? 
 
 
     /**
@@ -37,6 +38,7 @@ public abstract class MicroService implements Runnable {
         this.name = name;
         this.mb = MessageBusImpl.getInstance();
         this.callbacks = new HashMap<>();
+        this.currentTick = 0;
     }
 
     /**
@@ -167,7 +169,6 @@ public abstract class MicroService implements Runnable {
                     if(callbacks.containsKey(msgClass)){
                         callbacks.get(msgClass).call(msg); //what argument does it receive? msg or msgClass
                     }
-                    
                 }
             }
             catch(InterruptedException e){

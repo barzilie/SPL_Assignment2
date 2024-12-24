@@ -16,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance; //holds the single instance
+	//maybe split to two different hashmaps of broadcast and events
 	private ConcurrentHashMap<MicroService, BlockingQueue<Message>> microServiceQueues; //stores message queues for each MicroService
 	private ConcurrentHashMap<Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> eventSubscribers; //stores subscribers for different event types
 	private ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadcastSubscribers; //stores subscribers for different broadcast types

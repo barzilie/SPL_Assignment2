@@ -1,6 +1,12 @@
 package bgu.spl.mics.application.services;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -10,15 +16,25 @@ import bgu.spl.mics.MicroService;
  * the system's StatisticalFolder upon sending its observations.
  */
 public class CameraService extends MicroService {
+    private final Camera camera;
+    private int currentTick;
+    private ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsToSend;
+    private int ticksPassedSinceLastSend;
+    //private List<HashMap<String, Object>> cameraData;
+    //private boolean dataLoaded = false; 
+
 
     /**
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera) {
-        super("Change_This_Name");
-        // TODO Implement this
+    public CameraService(String name, Camera camera) {
+        super(name);
+        this.camera = camera;
+        this.currentTick = 0;
+        this.ticksPassedSinceLastSend = 0;
+        this.detectedObjectsToSend = new  ConcurrentLinkedQueue<StampedDetectedObjects>();
     }
 
     /**
@@ -28,6 +44,10 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
+        // subscribe to TickBroadcast, TerminatedBroadcast, CrashedBroadcast.
         // TODO Implement this
     }
+
+    private void sendDetectObjectsEvent(){}
+
 }
