@@ -2,10 +2,18 @@ package bgu.spl.mics.application.services;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.DetectObjectsEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.CloudPoint;
+import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 /**
@@ -18,8 +26,9 @@ import bgu.spl.mics.application.objects.StampedDetectedObjects;
 public class CameraService extends MicroService {
     private final Camera camera;
     private int currentTick;
-    private ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsToSend;
-    private int ticksPassedSinceLastSend;
+    private ConcurrentLinkedQueue<Future<Vector<CloudPoint>>> cameraFutures;
+    //maybe add a field of last index that was sent in the stampedlist (and change tickhandle method)
+
     //private List<HashMap<String, Object>> cameraData;
     //private boolean dataLoaded = false; 
 
@@ -29,12 +38,10 @@ public class CameraService extends MicroService {
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(String name, Camera camera) {
-        super(name);
+    public CameraService(Camera camera) {
+        super("cameraService: "+camera.getId());
         this.camera = camera;
         this.currentTick = 0;
-        this.ticksPassedSinceLastSend = 0;
-        this.detectedObjectsToSend = new  ConcurrentLinkedQueue<StampedDetectedObjects>();
     }
 
     /**
@@ -44,10 +51,40 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // subscribe to TickBroadcast, TerminatedBroadcast, CrashedBroadcast.
-        // TODO Implement this
+
+        //subscribes and enters callbacks
+        subscribeBroadcast(TickBroadcast.class, this::handleTick);
+        subscribeBroadcast(TerminatedBroadcast.class, this::handleTerminated);
+        subscribeBroadcast(CrashedBroadcast.class, this::handleCrashed);
+
     }
 
-    private void sendDetectObjectsEvent(){}
+    //callback function for TickBroadcasts
+    protected void handleTick(TickBroadcast tick){ 
+        int timeToCheck = currentTick - this.camera.getFrequency();
+        for(StampedDetectedObjects s: camera.getDetectedObjectsList()){
+            if(s.getTime() == timeToCheck){
+                Future<Vector<CloudPoint>> f = (Future<Vector<CloudPoint>>)this.sendEvent(new DetectObjectsEvent(s, camera));
+                cameraFutures.add(f);
+                break;
+            }
+        }
+    }    
+
+    //callback function for TerminatedBroadcast
+    private void handleTerminated(TerminatedBroadcast terminated){ 
+        //add to statistics and do the termination stuff
+        terminate();
+        camera.setStatus(STATUS.DOWN);
+    }
+
+    //callback function for CrashedBroadcast
+    private void handleCrashed(CrashedBroadcast crashed){
+        //add to statistics and do the termination stuff and more crashed things page 23
+        terminate();
+        camera.setStatus(STATUS.DOWN);
+    }
+
+
 
 }

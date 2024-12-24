@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.messages;
 
-public class TerminatedBroadcast {
+import bgu.spl.mics.Broadcast;
+
+public class TerminatedBroadcast implements Broadcast{
     
 }

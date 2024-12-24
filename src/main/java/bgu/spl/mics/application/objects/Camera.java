@@ -49,10 +49,8 @@ public class Camera {
     public void addDetectedObjects(StampedDetectedObjects stampedDetectedObjects){
         detectedObjectsList.add(stampedDetectedObjects);
     }
-    public List<StampedDetectedObjects> getDetectedObjectsList(){
-        return new LinkedList<>(detectedObjectsList);
+    public ConcurrentLinkedQueue<StampedDetectedObjects> getDetectedObjectsList(){
+        return this.detectedObjectsList;
     }
-    
-    // public getObjectsAtTime(){}
-        
+            
 }

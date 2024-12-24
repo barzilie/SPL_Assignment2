@@ -8,8 +8,16 @@ import java.util.Vector;
  * time of tracking, and coordinates in the environment.
  */
 public class TrackedObject {
-    private int id;
+    private String id;
     private int time;
     private String description;
     private Vector<CloudPoint> coordinates;
+
+    public TrackedObject(String id, int time, String description, Vector<CloudPoint> coordinates){
+        this.id = id;
+        this.time = time;
+        this.description = description;
+        this.coordinates = coordinates;
+
+    }
 }

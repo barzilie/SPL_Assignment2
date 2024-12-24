@@ -10,4 +10,16 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class StampedDetectedObjects {
     private int time;
     private ConcurrentLinkedQueue<DetectedObject> detectedObjects;
+
+    public int getTime(){
+        return this.time;
+    }
+    
+    public ConcurrentLinkedQueue<DetectedObject> getDetectedObjectsList(){
+        return this.detectedObjects;
+    }
+
+
 }
+
+

@@ -3,6 +3,8 @@ package bgu.spl.mics;
 import java.util.HashMap;
 import java.util.Map;
 
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+
 /**
  * The MicroService is an abstract class that any micro-service in the system
  * must extend. The abstract MicroService class is responsible to get and
@@ -27,7 +29,6 @@ public abstract class MicroService implements Runnable {
     private final String name;
     private MessageBusImpl mb; 
     private Map<Class<? extends Message>, Callback<Message>> callbacks;
-    private int currentTick; //should it be here? and all services will take time from here? 
 
 
     /**
@@ -38,7 +39,6 @@ public abstract class MicroService implements Runnable {
         this.name = name;
         this.mb = MessageBusImpl.getInstance();
         this.callbacks = new HashMap<>();
-        this.currentTick = 0;
     }
 
     /**
@@ -142,7 +142,9 @@ public abstract class MicroService implements Runnable {
      * message.
      */
     protected final void terminate() {
+
         this.terminated = true;
+        sendBroadcast(new TerminatedBroadcast());
     }
 
     /**

@@ -11,4 +11,12 @@ public class StampedCloudPoints {
     private String id;
     private int time;
     private ConcurrentLinkedQueue<List<Double>> cloudPoints;
+
+    public String getId(){
+        return this.id;
+    }
+    
+    public int getTime(){
+        return this.time;
+    }
 }

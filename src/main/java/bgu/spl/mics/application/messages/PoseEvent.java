@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.messages;
 
-public class PoseEvent {
+import bgu.spl.mics.Event;
+
+public class PoseEvent implements Event{
     
 }
