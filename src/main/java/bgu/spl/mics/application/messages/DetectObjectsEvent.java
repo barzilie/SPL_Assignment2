@@ -9,11 +9,9 @@ import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 public class DetectObjectsEvent implements Event<Vector<CloudPoint>>{
     private StampedDetectedObjects detectedObjects;
-    private Camera sentBy;
 
     public DetectObjectsEvent(StampedDetectedObjects detectedObjects, Camera sentBy){
         this.detectedObjects = detectedObjects;
-        this.sentBy = sentBy;
     }
 
     public StampedDetectedObjects getDetectedObjects(){

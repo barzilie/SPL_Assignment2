@@ -18,7 +18,6 @@ public class Future<T> {
 	 */
 	public Future() {
 		this.futureObject = null;
-		//TODO: implement this
 	}
 	
 	/**
@@ -39,7 +38,6 @@ public class Future<T> {
 			}
 		}
 		return futureObject;
-		//TODO: implement this.
 		//return null;
 	}
 	
@@ -79,9 +77,8 @@ public class Future<T> {
 		
 			}
 		}
-			return this.futureObject;
+		return this.futureObject;
 	}
-		//TODO: implement this.
 		//return null;
 
 }

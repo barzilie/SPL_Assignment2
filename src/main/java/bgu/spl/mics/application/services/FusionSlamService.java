@@ -14,6 +14,7 @@ import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.FusionSlam;
+import bgu.spl.mics.application.objects.LandMark;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedCloudPoints;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
@@ -31,6 +32,7 @@ import bgu.spl.mics.application.objects.Pose;
 public class FusionSlamService extends MicroService {
 
     private int currentTick = 0;
+    private FusionSlam fusionSlam;
 
     /**
      * Constructor for FusionSlamService.
@@ -39,7 +41,7 @@ public class FusionSlamService extends MicroService {
      */
     public FusionSlamService(FusionSlam fusionSlam) {
         super("Fusion Slam");
-        // TODO Implement this
+        fusionSlam = FusionSlam.getInstance();
     }
 
     /**
@@ -77,10 +79,23 @@ public class FusionSlamService extends MicroService {
         terminate();
     }
 
-    private void handleTrackedObject(TrackedObjectsEvent trackedObject){
+    private void handleTrackedObject(TrackedObjectsEvent trackedObjects){
+        for(TrackedObject object: trackedObjects.getTrackedObjects()){
+            ConcurrentLinkedQueue<CloudPoint> ObjectGlobalCoordinates = fusionSlam.convertToGlobal(object);
+            LandMark toRefine = fusionSlam.retrieveLandmark(object.getId());
+            if(toRefine == null){
+                this.fusionSlam.addLandMark(new LandMark(object.getId(),object.getDescription(), ObjectGlobalCoordinates));
+            }
+            else{
+                 toRefine.setCoordinates(fusionSlam.refineCoordinates(toRefine.getCoordinates(), ObjectGlobalCoordinates));
+            }
+        }
+        complete(trackedObjects, true);
 
     }
 
     private void handlePose(PoseEvent pose){
+        fusionSlam.addPose(pose.getPose());
+        complete(pose, true);
     }
 }

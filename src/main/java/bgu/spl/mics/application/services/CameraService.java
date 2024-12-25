@@ -1,7 +1,5 @@
 package bgu.spl.mics.application.services;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 

@@ -18,6 +18,20 @@ public class TrackedObject {
         this.time = time;
         this.description = description;
         this.coordinates = coordinates;
+    }
 
+    public Vector<CloudPoint> getCoordinates(){
+        return this.coordinates;
+    }
+
+    public int getTime(){
+        return this.time;
+    }
+
+    public String getId(){
+        return this.id;
+    }
+    public String getDescription(){
+        return this.description;
     }
 }

@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**

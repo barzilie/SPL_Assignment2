@@ -1,9 +1,6 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import javax.net.ssl.SSLEngineResult.Status;
 
 /**
  * Represents a camera sensor on the robot.

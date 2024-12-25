@@ -9,5 +9,9 @@ public class PoseEvent implements Event<Boolean>{
     public PoseEvent(Pose pose){
         this.pose = pose; 
     }
+
+    public Pose getPose(){
+        return this.pose;
+    }
     
 }

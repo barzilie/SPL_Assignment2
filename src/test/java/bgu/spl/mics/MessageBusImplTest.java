@@ -14,7 +14,7 @@ public class MessageBusImplTest {
      
     @BeforeEach 
 	public void setUp() throws Exception {
-        MessageBusImpl mb = instance.getInstance();
+        MessageBusImpl mb = MessageBusImpl.getInstance();
     }
 
 	@Test
@@ -50,7 +50,7 @@ public class MessageBusImplTest {
 	@Test
 	public void testSendEvent() {
 		// TODO Auto-generated method stub
-=	}
+	}
 
 	@Test
 	public void testRegister() {
@@ -67,7 +67,7 @@ public class MessageBusImplTest {
 	@Test
 	public void testAwaitMessage() throws InterruptedException {
 		// TODO Auto-generated method stub
-=	}
+	}
 
 	@Test
 	public void testRoundRobin(){

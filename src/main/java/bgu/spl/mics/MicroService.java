@@ -62,6 +62,7 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
+    @SuppressWarnings("unchecked")
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         mb.subscribeEvent(type, this);
         callbacks.put(type, (Callback<Message>)callback);
@@ -87,6 +88,7 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
+    @SuppressWarnings("unchecked")
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         mb.subscribeBroadcast(type, this);
         callbacks.put(type, (Callback<Message>)callback);    
@@ -156,7 +158,7 @@ public abstract class MicroService implements Runnable {
     }
 
     /**
-     * The entry point of the micro-service. TODO: you must complete this code
+     * The entry point of the micro-service: you must complete this code
      * otherwise you will end up in an infinite loop.
      */
     @Override
@@ -169,7 +171,7 @@ public abstract class MicroService implements Runnable {
                 if (msg != null){
                     Class<? extends Message> msgClass = msg.getClass();
                     if(callbacks.containsKey(msgClass)){
-                        callbacks.get(msgClass).call(msg); //what argument does it receive? msg or msgClass
+                        callbacks.get(msgClass).call(msg);
                     }
                 }
             }

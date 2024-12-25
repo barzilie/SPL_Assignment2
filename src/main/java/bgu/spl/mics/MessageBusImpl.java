@@ -1,6 +1,4 @@
 package bgu.spl.mics;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,8 +16,9 @@ public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance; //holds the single instance
 	//maybe split to two different hashmaps of broadcast and events
 	private ConcurrentHashMap<MicroService, BlockingQueue<Message>> microServiceQueues; //stores message queues for each MicroService
-	private ConcurrentHashMap<Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> eventSubscribers; //stores subscribers for different event types
+	private ConcurrentHashMap<Class<? extends Event<?>>, ConcurrentLinkedQueue<MicroService>> eventSubscribers; //stores subscribers for different event types
 	private ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadcastSubscribers; //stores subscribers for different broadcast types
+	@SuppressWarnings("rawtypes")
 	private ConcurrentHashMap<Event, Future> futures; //stores futures for each event
 	//maybe add a lock object to the queue we are locking???
 	//check about put method: throws exception
@@ -157,7 +156,7 @@ public class MessageBusImpl implements MessageBus {
 		return this.microServiceQueues;
 	}
 	
-	public ConcurrentHashMap<Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> getEventSubscribers(){
+	public ConcurrentHashMap<Class<? extends Event<?>>, ConcurrentLinkedQueue<MicroService>> getEventSubscribers(){
 		return this.eventSubscribers;
 	}
 
@@ -165,6 +164,7 @@ public class MessageBusImpl implements MessageBus {
 		return this.broadcastSubscribers;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Map<Event, Future> getFutures(){
 		return this.futures;
 	}

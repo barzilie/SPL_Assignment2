@@ -40,9 +40,8 @@ public class TimeService extends MicroService {
                 break;
             }
             timeLeft--;
-
-            
         }
+        terminate();
 
     }
 }
