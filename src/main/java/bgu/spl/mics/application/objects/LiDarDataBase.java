@@ -30,4 +30,14 @@ public class LiDarDataBase {
         }
         return instance;
     }
+
+    public StampedCloudPoints retrieveCloudPoint(int time, String id){
+        for(StampedCloudPoints stampedCP:this.cloudPoints){
+            if(stampedCP.getId() == id && stampedCP.getTime() == time){
+                return stampedCP;
+            }
+        }
+        return null;
+    }
+    
 }

@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
@@ -25,7 +25,7 @@ import bgu.spl.mics.application.objects.StampedDetectedObjects;
  */
 public class CameraService extends MicroService {
     private final Camera camera;
-    private int currentTick;
+    private int currentTick = 0;
     private ConcurrentLinkedQueue<Future<Vector<CloudPoint>>> cameraFutures;
     //maybe add a field of last index that was sent in the stampedlist (and change tickhandle method)
 
@@ -39,9 +39,9 @@ public class CameraService extends MicroService {
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super("cameraService: "+camera.getId());
+        super("CameraService: "+camera.getId());
         this.camera = camera;
-        this.currentTick = 0;
+        this.cameraFutures = new ConcurrentLinkedQueue<>();
     }
 
     /**
@@ -61,10 +61,11 @@ public class CameraService extends MicroService {
 
     //callback function for TickBroadcasts
     protected void handleTick(TickBroadcast tick){ 
+        currentTick++;
         int timeToCheck = currentTick - this.camera.getFrequency();
         for(StampedDetectedObjects s: camera.getDetectedObjectsList()){
             if(s.getTime() == timeToCheck){
-                Future<Vector<CloudPoint>> f = (Future<Vector<CloudPoint>>)this.sendEvent(new DetectObjectsEvent(s, camera));
+                Future<Vector<CloudPoint>> f = sendEvent(new DetectObjectsEvent(s, camera));
                 cameraFutures.add(f);
                 break;
             }

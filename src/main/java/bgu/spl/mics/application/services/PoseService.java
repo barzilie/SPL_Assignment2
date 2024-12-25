@@ -1,12 +1,29 @@
 package bgu.spl.mics.application.services;
 
+import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.DetectObjectsEvent;
+import bgu.spl.mics.application.messages.PoseEvent;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.CloudPoint;
+import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
  * and broadcasting PoseEvents at every tick.
  */
 public class PoseService extends MicroService {
+    private int currentTick = 0;
+    private GPSIMU gpsimu;
+    private ConcurrentLinkedQueue<Future<Boolean>> poseFutures;
+
+
+    
 
     /**
      * Constructor for PoseService.
@@ -14,8 +31,9 @@ public class PoseService extends MicroService {
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
     public PoseService(GPSIMU gpsimu) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("PoseService");
+        this.gpsimu = gpsimu;
+        this.poseFutures = new ConcurrentLinkedQueue<>();
     }
 
     /**
@@ -24,6 +42,14 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        subscribeBroadcast(TickBroadcast.class, this::handleTick);
     }
+
+    //callback function for TickBroadcasts
+    protected void handleTick(TickBroadcast tick){ 
+        currentTick++;
+        Future<Boolean> f = sendEvent(new PoseEvent(this.gpsimu.retrievePose(currentTick)));
+        poseFutures.add(f);
+
+    } 
 }

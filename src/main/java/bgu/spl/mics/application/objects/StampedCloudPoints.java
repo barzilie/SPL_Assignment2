@@ -19,4 +19,8 @@ public class StampedCloudPoints {
     public int getTime(){
         return this.time;
     }
+
+    public ConcurrentLinkedQueue<List<Double>> getCloudPoints(){
+        return this.cloudPoints;
+    }
 }

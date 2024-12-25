@@ -45,4 +45,8 @@ public class LiDarWorkerTracker {
         return lastTrackedObjects;
     }
 
+    public void setLastTrackedObjects(ConcurrentLinkedQueue<TrackedObject> trackedObjects){
+        this.lastTrackedObjects = trackedObjects;
+    }
+
 }
