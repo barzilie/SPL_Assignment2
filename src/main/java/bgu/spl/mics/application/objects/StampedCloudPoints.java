@@ -8,8 +8,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Used by the LiDAR system to store and process point cloud data for tracked objects.
  */
 public class StampedCloudPoints {
-    private String id;
     private int time;
+    private String id;
     private ConcurrentLinkedQueue<List<Double>> cloudPoints;
 
     public String getId(){

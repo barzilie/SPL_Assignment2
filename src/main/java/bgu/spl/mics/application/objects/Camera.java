@@ -11,25 +11,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Camera {
     private int id;
     private int frequency;
-    private String cameraKey;
-    private STATUS status;
+    private String camera_key;
+    private STATUS status = STATUS.UP;
     private ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsList;
 
-    public Camera(int id, int frequency, String cameraKey, ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsList){
+    public Camera(int id, int frequency, String cameraKey){
         this.id = id;
         this.frequency = frequency;
-        this.cameraKey = cameraKey;
+        this.camera_key = cameraKey;
         this.status = STATUS.UP;
-        this.detectedObjectsList = detectedObjectsList;
-        for(StampedDetectedObjects SDO: detectedObjectsList){
-            ConcurrentLinkedQueue<DetectedObject> DOList = SDO.getDetectedObjectsList();
-            for(DetectedObject DO: DOList){
-                System.out.println(cameraKey+"found:"+DO.getDescription());
-            }
+        this.detectedObjectsList = new ConcurrentLinkedQueue<StampedDetectedObjects>();
 
-
-        }
     }
+
+
 
     public int getId() {
         return id;
@@ -40,7 +35,7 @@ public class Camera {
     }
 
     public String getCameraKey() {
-        return cameraKey;
+        return camera_key;
     }
 
     public void setStatus(STATUS status) {
@@ -59,7 +54,20 @@ public class Camera {
     }
 
     public String toString(){
-        return "camera id: "+id+ "camera freq: " + frequency + "camera key: " + cameraKey;
+        return "camera id: "+id+ "camera freq: " + frequency + "camera key: " + camera_key;
+    }
+
+    public void setDetectedObjectsList(ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsList) {
+        this.detectedObjectsList = detectedObjectsList;
+
+        for(StampedDetectedObjects SDO: detectedObjectsList){
+            ConcurrentLinkedQueue<DetectedObject> DOList = SDO.getDetectedObjectsList();
+            for(DetectedObject DO: DOList){
+                System.out.println(camera_key+"found:"+DO.getDescription());
+            }
+
+
+        }
     }
             
 }

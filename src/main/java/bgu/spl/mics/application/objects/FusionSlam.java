@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class FusionSlam {
     private Vector<LandMark> landmarks;
     private Vector<Pose> poses;
+    
     private FusionSlam(){
         this.landmarks = new Vector<>();
         this.poses = new Vector<>();

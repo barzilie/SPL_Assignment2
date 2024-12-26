@@ -6,54 +6,26 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.FusionSlam;
+import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.services.CameraService;
+import bgu.spl.mics.application.services.FusionSlamService;
 import bgu.spl.mics.application.services.LiDarService;
+import bgu.spl.mics.application.services.PoseService;
 import bgu.spl.mics.application.services.TimeService;
 
 public class JsonConfigHandler {
 
 
-    public static class CameraConfiguration {
-        private int id;
-        private int frequency;
-        private String camera_key;
-
-
-        public int getId() {
-            return id;
-        }
-
-        public int getFrequency() {
-            return frequency;
-        }
-
-        public String getCamera_key() {
-            return camera_key;
-        }
-    }
-
-    public static class LidarConfiguration {
-        private int id;
-        private int frequency;
-
-        
-        public int getId() {
-            return id;
-        }
-
-        public int getFrequency() {
-            return frequency;
-        }
-    }
-
     public static class Cameras {
-        private List<CameraConfiguration> CamerasConfigurations;
+        private List<Camera> CamerasConfigurations;
+
         private String camera_datas_path;
 
-
-        public List<CameraConfiguration> getCamerasConfigurations() {
+        public List<Camera> getListCameras() {
             return CamerasConfigurations;
         }
 
@@ -63,11 +35,11 @@ public class JsonConfigHandler {
     }
 
     public static class Lidars {
-        private List<LidarConfiguration> LidarConfigurations;
+        private List<LiDarWorkerTracker> LidarConfigurations;
         private String lidars_data_path;
 
 
-        public List<LidarConfiguration> getLidarConfigurations() {
+        public List<LiDarWorkerTracker> getLidarsObjects() {
             return LidarConfigurations;
         }
 
@@ -107,26 +79,38 @@ public class JsonConfigHandler {
 
     public static void buildServicesConfig(RootObject rootObject,
      HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap) throws Exception{
-            if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getCamerasConfigurations() != null) {
-                for (CameraConfiguration cameraConfig : rootObject.getCameras().getCamerasConfigurations()) {
-                    new CameraService(new Camera(cameraConfig.getId(), cameraConfig.getFrequency(), cameraConfig.getCamera_key(),cameraMap.get(cameraConfig.getCamera_key()).get(0)));
+            if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getListCameras() != null) {
+                for (Camera camera : rootObject.getCameras().getListCameras()) {
+                    camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()).get(0));
+                    camera.setStatus(STATUS.UP);
+                    new CameraService(camera);
                 }
-            } else {
-                throw new Exception("Error: CamerasConfigurations is null.");
+            } 
+            else {
+                System.out.println("Error: CamerasConfigurations is null.");
             }
-            if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarConfigurations() != null) {
-                for (LidarConfiguration lidarConfig : rootObject.getLidars().getLidarConfigurations()) {
-                    new LiDarService(new LiDarWorkerTracker(lidarConfig.getId(), lidarConfig.getFrequency()), rootObject.getLidars().getLidars_data_path());
+            if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarsObjects() != null) {
+                for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
+                    lidar.setStatus(STATUS.UP);
+                    new LiDarService(lidar, rootObject.getLidars().getLidars_data_path());
                 }
-            } else {
-               throw new Exception("Error: LidarConfigurations is null.");
+            } 
+            else {
+               System.out.println("Error: LidarConfigurations is null.");
             }
             if (rootObject != null && rootObject.getTickTime() != 0 && rootObject.getDuration() != 0) {
                 new TimeService(rootObject.getTickTime(), rootObject.getDuration());
-            } else {
-                throw new Exception("Error: ClockConfiguration is null.");
+            } 
+            else {
+                System.out.println("Error: ClockConfiguration is null.");
             }
-        
+            if(rootObject != null && rootObject.getPoseJsonFile() != null){
+                new PoseService(new GPSIMU(rootObject.getPoseJsonFile()));
+            }
+            else{
+                System.out.println("Error: PoseConfiguration is null.");
+            }
+            new FusionSlamService(FusionSlam.getInstance());
     }
 
 

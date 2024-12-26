@@ -3,8 +3,6 @@ package bgu.spl.mics.application;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import bgu.spl.mics.application.JsonConfigHandler.CameraConfiguration;
-import bgu.spl.mics.application.JsonConfigHandler.LidarConfiguration;
 import bgu.spl.mics.application.JsonConfigHandler.Lidars;
 import bgu.spl.mics.application.JsonConfigHandler.RootObject;
 import bgu.spl.mics.application.objects.Camera;
