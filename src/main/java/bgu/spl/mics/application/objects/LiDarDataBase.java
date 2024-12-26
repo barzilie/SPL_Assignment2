@@ -47,18 +47,18 @@ public class LiDarDataBase {
         return null;
     }
 
-    private ConcurrentLinkedQueue<StampedCloudPoints> initializeDB(String filePath){
-        if(this.cloudPoints!=null) return cloudPoints;
-        try (FileReader reader = new FileReader(filePath)) {
-            Gson gson = new Gson();
-            Type listType = new TypeToken<ConcurrentLinkedQueue<StampedCloudPoints>>() {}.getType();
-            ConcurrentLinkedQueue<StampedCloudPoints> dataPoints = gson.fromJson(reader, listType);
-            return dataPoints;
+    private void initializeDB(String filePath){
+        if(this.cloudPoints==null){
+            try (FileReader reader = new FileReader(filePath)) {
+                Gson gson = new Gson();
+                Type listType = new TypeToken<ConcurrentLinkedQueue<StampedCloudPoints>>() {}.getType();
+                ConcurrentLinkedQueue<StampedCloudPoints> dataPoints = gson.fromJson(reader, listType);
+                this.cloudPoints = dataPoints;
 
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + e.getMessage());
+            }
         }
-        return null;
     }
 
     

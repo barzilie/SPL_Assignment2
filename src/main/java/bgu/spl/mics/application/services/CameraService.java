@@ -39,7 +39,7 @@ public class CameraService extends MicroService {
     public CameraService(Camera camera) {
         super("CameraService: "+camera.getId());
         this.camera = camera;
-        this.cameraFutures = new ConcurrentLinkedQueue<>();
+        this.cameraFutures = new ConcurrentLinkedQueue<Future<Vector<CloudPoint>>>();
     }
 
     /**

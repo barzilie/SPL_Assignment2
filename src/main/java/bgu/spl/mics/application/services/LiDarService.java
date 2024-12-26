@@ -46,6 +46,7 @@ public class LiDarService extends MicroService {
         this.lidarWT = LiDarWorkerTracker;
         this.lidarDataBase = LiDarDataBase.getInstance(lidarDBPath);
         this.lidarFutures = new ConcurrentLinkedQueue<>();
+        this.eventsToSend = new ConcurrentLinkedQueue<TrackedObjectsEvent>();
         System.out.println("Lidar: " + LiDarWorkerTracker.getId());
     }
 

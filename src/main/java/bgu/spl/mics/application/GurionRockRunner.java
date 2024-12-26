@@ -3,6 +3,7 @@ package bgu.spl.mics.application;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.JsonConfigHandler.Lidars;
 import bgu.spl.mics.application.JsonConfigHandler.RootObject;
 import bgu.spl.mics.application.objects.Camera;
@@ -18,7 +19,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 
@@ -46,9 +50,11 @@ public class GurionRockRunner {
             // Parse the JSON
             RootObject rootObject = gson.fromJson(reader, RootObject.class);
             HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
-
-            // Access data
-            JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
+            ExecutorService executor = Executors.newCachedThreadPool();
+            Vector<MicroService> microServices = JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
+            for(MicroService ms: microServices){
+                executor.submit(ms);
+            }
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error reading JSON file: " + e.getMessage());

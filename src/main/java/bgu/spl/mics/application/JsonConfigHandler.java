@@ -3,8 +3,10 @@ package bgu.spl.mics.application;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.GPSIMU;
@@ -77,41 +79,41 @@ public class JsonConfigHandler {
         }
     }
 
-    public static void buildServicesConfig(RootObject rootObject,
-     HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap) throws Exception{
-            if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getListCameras() != null) {
-                for (Camera camera : rootObject.getCameras().getListCameras()) {
-                    camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()).get(0));
-                    camera.setStatus(STATUS.UP);
-                    new CameraService(camera);
-                }
-            } 
-            else {
-                System.out.println("Error: CamerasConfigurations is null.");
+    public static Vector<MicroService> buildServicesConfig(RootObject rootObject,
+     HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap){
+        Vector<MicroService> microServices = new Vector<>();
+        if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getListCameras() != null) {
+            for (Camera camera : rootObject.getCameras().getListCameras()) {
+                camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()).get(0));
+                camera.setStatus(STATUS.UP);
+                microServices.add(new CameraService(camera));
             }
-            if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarsObjects() != null) {
-                for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
-                    lidar.setStatus(STATUS.UP);
-                    new LiDarService(lidar, rootObject.getLidars().getLidars_data_path());
-                }
-            } 
-            else {
-               System.out.println("Error: LidarConfigurations is null.");
+        } else {
+            System.out.println("Error: CamerasConfigurations is null.");
+        }
+        if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarsObjects() != null) {
+            for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
+                lidar.setStatus(STATUS.UP);
+                microServices.add(new LiDarService(lidar, rootObject.getLidars().getLidars_data_path()));
             }
-            if (rootObject != null && rootObject.getTickTime() != 0 && rootObject.getDuration() != 0) {
-                new TimeService(rootObject.getTickTime(), rootObject.getDuration());
-            } 
-            else {
-                System.out.println("Error: ClockConfiguration is null.");
-            }
-            if(rootObject != null && rootObject.getPoseJsonFile() != null){
-                new PoseService(new GPSIMU(rootObject.getPoseJsonFile()));
-            }
-            else{
-                System.out.println("Error: PoseConfiguration is null.");
-            }
-            new FusionSlamService(FusionSlam.getInstance());
+        } else {
+            System.out.println("Error: LidarConfigurations is null.");
+        }
+        if (rootObject != null && rootObject.getPoseJsonFile() != null) {
+            microServices.add(new PoseService(new GPSIMU(rootObject.getPoseJsonFile())));
+        } else {
+            System.out.println("Error: PoseConfiguration is null.");
+        }
+        microServices.add(new FusionSlamService(FusionSlam.getInstance()));
+        if (rootObject != null && rootObject.getTickTime() != 0 && rootObject.getDuration() != 0) {
+            microServices.add(new TimeService(rootObject.getTickTime(), rootObject.getDuration()));
+        } else {
+            System.out.println("Error: ClockConfiguration is null.");
+        }
+        return microServices;
+        
     }
+
 
 
 }

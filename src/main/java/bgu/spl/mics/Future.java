@@ -54,7 +54,6 @@ public class Future<T> {
      */
 	public synchronized boolean isDone() {
 		return (this.futureObject!=null);
-		//return false;
 	}
 	
 	/**
@@ -74,11 +73,8 @@ public class Future<T> {
 				unit.timedWait(this, timeout);
 			}
 			catch(InterruptedException e){
-		
 			}
 		}
 		return this.futureObject;
 	}
-		//return null;
-
 }
