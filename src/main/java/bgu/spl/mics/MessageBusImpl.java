@@ -47,6 +47,8 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		ConcurrentLinkedQueue<MicroService> subscribedMicroServices = broadcastSubscribers.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>());
+		System.out.println("contain the next event: " + broadcastSubscribers.containsKey(type));
+		System.out.println("type "+type.toString());
 		subscribedMicroServices.add(m);
 	}
 

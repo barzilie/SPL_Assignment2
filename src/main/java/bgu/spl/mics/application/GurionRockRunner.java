@@ -52,9 +52,12 @@ public class GurionRockRunner {
             HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
             ExecutorService executor = Executors.newCachedThreadPool();
             Vector<MicroService> microServices = JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
+            Vector<Thread> threads = new Vector<>();
             for(MicroService ms: microServices){
-                executor.submit(ms);
-            }
+                Thread thread = new Thread(ms);
+                threads.add(thread);
+                thread.start(); 
+                }
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error reading JSON file: " + e.getMessage());

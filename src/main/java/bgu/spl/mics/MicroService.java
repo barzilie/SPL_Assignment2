@@ -2,6 +2,7 @@ package bgu.spl.mics;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 
@@ -39,6 +40,8 @@ public abstract class MicroService implements Runnable {
         this.name = name;
         this.mb = MessageBusImpl.getInstance();
         this.callbacks = new HashMap<>();
+        this.mb.register(this);
+        initialize();
     }
 
     /**
@@ -163,8 +166,6 @@ public abstract class MicroService implements Runnable {
      */
     @Override
     public final void run() {
-        this.mb.register(this);
-        initialize();
         while (!terminated) {
             try{
                 Message msg = this.mb.awaitMessage(this);
