@@ -6,6 +6,15 @@
     "configurations": [
         {
             "type": "java",
+            "name": "GurionRockRunner",
+            "request": "launch",
+            "mainClass": "bgu.spl.mics.application.GurionRockRunner",
+            "projectName": "spl224ass2",
+            "args": "./configuration_file.json",
+            "cwd": "/workspaces/SPL_Assignment2/example_input2"
+        },
+        {
+            "type": "java",
             "name": "Launch Java Program",
             "request": "launch",
             "mainClass": ""
@@ -23,7 +32,7 @@
             "mainClass": "bgu.spl.mics.application.GurionRockRunner",
             "projectName": "spl225ass2",
             "args": "./configuration_file.json",
-            "cwd":"/workspaces/SPL_Assignment2/example_input2"
+            "cwd": "/workspaces/SPL_Assignment2/example_input2"
         },
         {
             "type": "java",

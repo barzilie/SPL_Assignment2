@@ -50,7 +50,7 @@ public class GurionRockRunner {
             HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
 
             // Access data
-            ConfigToService.buildServicesConfig(rootObject, cameraMap);
+            JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error reading JSON file: " + e.getMessage());
