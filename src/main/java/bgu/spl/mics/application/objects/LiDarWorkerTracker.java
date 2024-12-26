@@ -47,4 +47,8 @@ public class LiDarWorkerTracker {
         this.lastTrackedObjects = trackedObjects;
     }
 
+    public String toString(){
+        return "lidar id: "+id+ "lidar freq: " + frequency;
+    }
+
 }
