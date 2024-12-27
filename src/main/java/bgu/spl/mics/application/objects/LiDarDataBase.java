@@ -38,13 +38,20 @@ public class LiDarDataBase {
         return db;
     }
 
-    public StampedCloudPoints retrieveCloudPoint(int time, String id){
-        for(StampedCloudPoints stampedCP:this.cloudPoints){
-            if(stampedCP.getId() == id && stampedCP.getTime() == time){
-                return stampedCP;
+    public ConcurrentLinkedQueue<StampedCloudPoints> getCloudPoints() {
+        return cloudPoints;
+    }
+
+    public StampedCloudPoints retrieveCloudPoint(int timeLimit, String id){
+        StampedCloudPoints output = null;
+        for(StampedCloudPoints stampedCP: this.cloudPoints){
+            if(stampedCP.getId().equals(id) && stampedCP.getTime() <= timeLimit){
+                if(output == null || (output != null && stampedCP.getTime() > output.getTime())){
+                    output = stampedCP;
+                } 
             }
         }
-        return null;
+        return output;
     }
 
     private void initializeDB(String filePath){
@@ -60,7 +67,5 @@ public class LiDarDataBase {
             }
         }
     }
-
-    
     
 }

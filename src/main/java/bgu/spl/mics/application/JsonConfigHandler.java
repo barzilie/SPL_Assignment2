@@ -82,10 +82,13 @@ public class JsonConfigHandler {
     public static Vector<MicroService> buildServicesConfig(RootObject rootObject,
      HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap){
         Vector<MicroService> microServices = new Vector<>();
+        FusionSlamService fusionSlam = new FusionSlamService(FusionSlam.getInstance());
+        microServices.add(fusionSlam);
         if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getListCameras() != null) {
             for (Camera camera : rootObject.getCameras().getListCameras()) {
                 camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()).get(0));
                 camera.setStatus(STATUS.UP);
+                fusionSlam.incrementNumOfSensors();
                 microServices.add(new CameraService(camera));
             }
         } else {
@@ -94,6 +97,7 @@ public class JsonConfigHandler {
         if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarsObjects() != null) {
             for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
                 lidar.setStatus(STATUS.UP);
+                fusionSlam.incrementNumOfSensors();
                 microServices.add(new LiDarService(lidar, rootObject.getLidars().getLidars_data_path()));
             }
         } else {
@@ -103,12 +107,6 @@ public class JsonConfigHandler {
             microServices.add(new PoseService(new GPSIMU(rootObject.getPoseJsonFile())));
         } else {
             System.out.println("Error: PoseConfiguration is null.");
-        }
-        microServices.add(new FusionSlamService(FusionSlam.getInstance()));
-        if (rootObject != null && rootObject.getTickTime() != 0 && rootObject.getDuration() != 0) {
-            microServices.add(new TimeService(rootObject.getTickTime(), rootObject.getDuration()));
-        } else {
-            System.out.println("Error: ClockConfiguration is null.");
         }
         return microServices;
         

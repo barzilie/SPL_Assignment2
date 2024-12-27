@@ -66,7 +66,7 @@ public class MessageBusImpl implements MessageBus {
 			if(recepients != null && !recepients.isEmpty()){
 				for(MicroService ms: recepients){
 					BlockingQueue<Message> q = microServiceQueues.get(ms);
-					synchronized(q){ //
+					synchronized(q){
 						q.add(b);
 						q.notifyAll(); 
 					}	
@@ -83,18 +83,20 @@ public class MessageBusImpl implements MessageBus {
 			ConcurrentLinkedQueue<MicroService> recepients = eventSubscribers.get(e.getClass());
 			if(recepients != null && !recepients.isEmpty()){
 				Future<T> f = new Future<>();
-				MicroService ms = roundRobin(recepients);
 				futures.put(e, f);
+				MicroService ms = roundRobin(recepients);
 				BlockingQueue<Message> q = microServiceQueues.get(ms);
 				synchronized(q){ 
+					System.out.println(Thread.currentThread()+": "+e.getClass()+" sent to:"+ ms.getName());
 					q.add(e);
 					q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
 				}
 				return f;
 			}
+			System.out.println("not entered SECOND ONLY if send event: " + Thread.currentThread()+" : "+e.getClass());
 		}
 		System.out.println(e.getClass().toString());
-		System.out.println("not entered if send event: " + Thread.currentThread());
+		System.out.println("not entered 2 if send event: " + Thread.currentThread());
 		complete(e, null);
 		return null;
 	}
@@ -102,6 +104,7 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void register(MicroService m) {
 		microServiceQueues.put(m, new LinkedBlockingQueue<Message>());
+		System.out.println(m.getClass() + ": registered to bus");
 		//do we need to cunscribe here to event\broadcast ? 
 	}
 
@@ -140,18 +143,20 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		BlockingQueue<Message> msgq = microServiceQueues.get(m);
-		if(msgq!=null){
-			synchronized(m){
-				try{
+		try{
+			BlockingQueue<Message> msgq = microServiceQueues.get(m);
+			synchronized (m) {
+				try {
 					return msgq.take();
-				}
-				catch(InterruptedException e){
+				} 
+				catch (InterruptedException e) {
 					throw new InterruptedException();
 				}
 			}
 		}
-		return null;
+		catch(NullPointerException e){
+			throw new IllegalStateException();
+		}
 	}
 
 	//private round-robin implementation

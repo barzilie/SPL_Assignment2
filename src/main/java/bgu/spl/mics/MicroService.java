@@ -41,7 +41,6 @@ public abstract class MicroService implements Runnable {
         this.mb = MessageBusImpl.getInstance();
         this.callbacks = new HashMap<>();
         this.mb.register(this);
-        initialize();
     }
 
     /**
@@ -147,9 +146,9 @@ public abstract class MicroService implements Runnable {
      * message.
      */
     protected final void terminate() {
-
         this.terminated = true;
-        sendBroadcast(new TerminatedBroadcast());
+        sendBroadcast(new TerminatedBroadcast(this.getName()));
+        System.out.println(this.getName() + " TERMINATED!!!!!!!!!");
     }
 
     /**

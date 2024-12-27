@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 
 /**
  * TimeService acts as the global timer for the system, broadcasting TickBroadcast messages
@@ -11,6 +12,7 @@ public class TimeService extends MicroService {
     private int tickTime;
     private int duration;
     private int timeLeft;
+    private StatisticalFolder statisticalFolder = StatisticalFolder.getInstance();
 
 
     /**
@@ -25,6 +27,7 @@ public class TimeService extends MicroService {
         this.duration = Duration;
         this.timeLeft = Duration;
         System.out.println("time: " + duration);
+        initialize();
     }
 
     /**
@@ -33,15 +36,17 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-        while(timeLeft>0){
+        while(timeLeft>0 && !statisticalFolder.terminateClock()){
             sendBroadcast(new TickBroadcast());
+            statisticalFolder.increaseSystemRuntime();
             try{
-                Thread.sleep(tickTime);
+                Thread.sleep(tickTime*1000);
             }catch(InterruptedException e){
                 break;
             }
             timeLeft--;
         }
+        System.out.println("clock terminated");
         terminate();
 
     }

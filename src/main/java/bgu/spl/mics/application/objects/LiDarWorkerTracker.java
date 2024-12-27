@@ -45,6 +45,7 @@ public class LiDarWorkerTracker {
 
     public void setLastTrackedObjects(ConcurrentLinkedQueue<TrackedObject> trackedObjects){
         this.lastTrackedObjects = trackedObjects;
+        System.out.println("invoked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     }
 
     public String toString(){

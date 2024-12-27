@@ -4,9 +4,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.STATUS;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
@@ -18,8 +22,6 @@ public class PoseService extends MicroService {
     private ConcurrentLinkedQueue<Future<Boolean>> poseFutures;
 
 
-    
-
     /**
      * Constructor for PoseService.
      *
@@ -29,6 +31,7 @@ public class PoseService extends MicroService {
         super("PoseService");
         this.gpsimu = gpsimu;
         this.poseFutures = new ConcurrentLinkedQueue<>();
+        initialize();
     }
 
     /**
@@ -44,6 +47,12 @@ public class PoseService extends MicroService {
     protected void handleTick(TickBroadcast tick){ 
         currentTick++;
         Future<Boolean> f = sendEvent(new PoseEvent(this.gpsimu.retrievePose(currentTick)));
+        if(f == null){
+            if(StatisticalFolder.getInstance().getError() == null){
+                StatisticalFolder.getInstance().setPoses(this.gpsimu.errorPoseList(StatisticalFolder.getInstance().getSystemRuntime()));
+            }
+            terminate();
+        }
         poseFutures.add(f);
 
     } 

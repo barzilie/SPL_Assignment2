@@ -21,10 +21,7 @@ public class Camera {
         this.camera_key = cameraKey;
         this.status = STATUS.UP;
         this.detectedObjectsList = new ConcurrentLinkedQueue<StampedDetectedObjects>();
-
     }
-
-
 
     public int getId() {
         return id;

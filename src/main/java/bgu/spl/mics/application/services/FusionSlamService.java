@@ -18,6 +18,7 @@ import bgu.spl.mics.application.objects.LandMark;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedCloudPoints;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 import bgu.spl.mics.application.objects.Pose;
 
@@ -33,6 +34,8 @@ public class FusionSlamService extends MicroService {
 
     private int currentTick = 0;
     private FusionSlam fusionSlam;
+    private StatisticalFolder statisticalFolder = StatisticalFolder.getInstance();
+    private int numOfSensors = 0;
 
     /**
      * Constructor for FusionSlamService.
@@ -41,7 +44,8 @@ public class FusionSlamService extends MicroService {
      */
     public FusionSlamService(FusionSlam fusionSlam) {
         super("Fusion Slam");
-        fusionSlam = FusionSlam.getInstance();
+        this.fusionSlam = FusionSlam.getInstance();
+        initialize();
     }
 
     /**
@@ -69,13 +73,23 @@ public class FusionSlamService extends MicroService {
 
     //callback function for TerminatedBroadcast
     private void handleTerminated(TerminatedBroadcast terminated){ 
+        if(terminated.getSenderName().equals("TimeService")){
+            terminate();
+        }
+        else{
+            numOfSensors--;
+            if(numOfSensors == 0){
+                statisticalFolder.setTerminateClock();
+                terminate();
+            }
+        }
         //add to statistics and do the termination stuff
-        terminate();
     }
 
     //callback function for CrashedBroadcast
     private void handleCrashed(CrashedBroadcast crashed){
         //add to statistics and do the termination stuff and more crashed things page 23
+        statisticalFolder.setTerminateClock();
         terminate();
     }
 
@@ -84,7 +98,10 @@ public class FusionSlamService extends MicroService {
             ConcurrentLinkedQueue<CloudPoint> ObjectGlobalCoordinates = fusionSlam.convertToGlobal(object);
             LandMark toRefine = fusionSlam.retrieveLandmark(object.getId());
             if(toRefine == null){
-                this.fusionSlam.addLandMark(new LandMark(object.getId(),object.getDescription(), ObjectGlobalCoordinates));
+                LandMark toAdd = new LandMark(object.getId(),object.getDescription(), ObjectGlobalCoordinates);
+                this.fusionSlam.addLandMark(toAdd);
+                statisticalFolder.increaseNumLandMarks();
+                statisticalFolder.addLandMarks(toAdd);
             }
             else{
                  toRefine.setCoordinates(fusionSlam.refineCoordinates(toRefine.getCoordinates(), ObjectGlobalCoordinates));
@@ -97,5 +114,9 @@ public class FusionSlamService extends MicroService {
     private void handlePose(PoseEvent pose){
         fusionSlam.addPose(pose.getPose());
         complete(pose, true);
+    }
+
+    public void incrementNumOfSensors() {
+        numOfSensors = numOfSensors+1;
     }
 }
