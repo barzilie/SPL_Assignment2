@@ -3,6 +3,7 @@ import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.*;
 import bgu.spl.mics.application.services.FusionSlamService;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import java.util.Iterator;
 import java.util.Vector;
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(Lifecycle.PER_CLASS)
 class FusionSlamServiceTest {
 
     private FusionSlamService fusionSlamService;
@@ -18,7 +20,7 @@ class FusionSlamServiceTest {
     public TrackedObjectsEvent trackedObjectEvent;
 
     @BeforeAll
-    void setUp() {
+    public void setUp() {
         fusionSlam = FusionSlam.getInstance();
         statisticalFolder = StatisticalFolder.getInstance();
         fusionSlamService = new FusionSlamService(fusionSlam);
@@ -27,7 +29,7 @@ class FusionSlamServiceTest {
     }
 
     @Test
-    void testHandleTrackedObject_newLandmark() {
+    public void testHandleTrackedObject_newLandmark() {
         //initialization
         Vector<CloudPoint> coordinatesB = new Vector<>();
         coordinatesB.add(new CloudPoint(0, 1));
@@ -66,7 +68,10 @@ class FusionSlamServiceTest {
         Iterator<CloudPoint> resultCoordinatesIterator = globalCoordinatesB.iterator();
         Iterator<CloudPoint> landMarkIteratorB = retrievedLandmarkB.getCoordinates().iterator();
         while(resultCoordinatesIterator.hasNext()&& landMarkIteratorB.hasNext()){
-            assertEquals(resultCoordinatesIterator.next(), landMarkIteratorB.next());
+            CloudPoint resultCP = resultCoordinatesIterator.next();
+            CloudPoint lamdMarkCP = landMarkIteratorB.next();
+            assertEquals(resultCP.getX(), lamdMarkCP.getX());
+            assertEquals(resultCP.getY(), lamdMarkCP.getY());
         }
 
         //expected Second Object result calculation:
@@ -91,14 +96,16 @@ class FusionSlamServiceTest {
         Iterator<CloudPoint> resultCoordinatesIteratorC = globalCoordinatesC.iterator();
         Iterator<CloudPoint> landMarkIteratorC = retrievedLandmarkC.getCoordinates().iterator();
         while(resultCoordinatesIteratorC.hasNext()&& landMarkIteratorC.hasNext()){
-            assertEquals(resultCoordinatesIteratorC.next(), landMarkIteratorC.next());
-        }
+            CloudPoint resultCP = resultCoordinatesIteratorC.next();
+            CloudPoint lamdMarkCP = landMarkIteratorC.next();
+            assertEquals(resultCP.getX(), lamdMarkCP.getX());
+            assertEquals(resultCP.getY(), lamdMarkCP.getY());        }
 
 
     }
 
     @Test
-    void testHandleTrackedObject_UpdateExistingLandmark() {
+    public void testHandleTrackedObject_UpdateExistingLandmark() {
 
         //initialization
         ConcurrentLinkedQueue<CloudPoint> coordinates = new ConcurrentLinkedQueue<>();
@@ -154,7 +161,9 @@ class FusionSlamServiceTest {
         Iterator<CloudPoint> resultCoordinatesAIterator = resultCoordinatesA.iterator();
         Iterator<CloudPoint> landMarkIteratorAafter = retrievedLandmarkA.getCoordinates().iterator();
         while(resultCoordinatesAIterator.hasNext()&& landMarkIteratorAafter.hasNext()){
-            assertEquals(resultCoordinatesAIterator.next(), landMarkIteratorAafter.next());
-        }
+            CloudPoint resultCP = resultCoordinatesAIterator.next();
+            CloudPoint lamdMarkCP = landMarkIteratorAafter.next();
+            assertEquals(resultCP.getX(), lamdMarkCP.getX());
+            assertEquals(resultCP.getY(), lamdMarkCP.getY());            }
     }
 }
