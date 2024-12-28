@@ -1,6 +1,11 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import bgu.spl.mics.Future;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.DetectObjectsEvent;
 
 /**
  * Represents a camera sensor on the robot.
@@ -13,14 +18,15 @@ public class Camera {
     private int frequency;
     private String camera_key;
     private STATUS status = STATUS.UP;
-    private ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsList;
+    private Vector<StampedDetectedObjects> detectedObjectsList;
+    private int finishTime = 0;
 
     public Camera(int id, int frequency, String cameraKey){
         this.id = id;
         this.frequency = frequency;
         this.camera_key = cameraKey;
         this.status = STATUS.UP;
-        this.detectedObjectsList = new ConcurrentLinkedQueue<StampedDetectedObjects>();
+        this.detectedObjectsList = new Vector<StampedDetectedObjects>();
     }
 
     public int getId() {
@@ -46,7 +52,7 @@ public class Camera {
     public void addDetectedObjects(StampedDetectedObjects stampedDetectedObjects){
         detectedObjectsList.add(stampedDetectedObjects);
     }
-    public ConcurrentLinkedQueue<StampedDetectedObjects> getDetectedObjectsList(){
+    public Vector<StampedDetectedObjects> getDetectedObjectsList(){
         return this.detectedObjectsList;
     }
 
@@ -54,17 +60,61 @@ public class Camera {
         return "camera id: "+id+ "camera freq: " + frequency + "camera key: " + camera_key;
     }
 
-    public void setDetectedObjectsList(ConcurrentLinkedQueue<StampedDetectedObjects> detectedObjectsList) {
+    public void setDetectedObjectsList(Vector<StampedDetectedObjects> detectedObjectsList) {
         this.detectedObjectsList = detectedObjectsList;
-
         for(StampedDetectedObjects SDO: detectedObjectsList){
+            if(SDO.getTime()>finishTime) finishTime = SDO.getTime();
             ConcurrentLinkedQueue<DetectedObject> DOList = SDO.getDetectedObjectsList();
             for(DetectedObject DO: DOList){
-                System.out.println(camera_key+"found:"+DO.getDescription());
+                System.out.println(camera_key+" found: "+DO.getDescription());
             }
 
 
         }
+    }
+
+    public StampedDetectedObjects getDetectedObjectsAtTime(int time){
+        for(StampedDetectedObjects sdo: detectedObjectsList){
+            if(sdo.getTime() == time)
+                return sdo;
+        }
+        return null;
+    }
+
+    public boolean checkErrorId (ConcurrentLinkedQueue<DetectedObject> detectedObjects){
+        for(DetectedObject d: detectedObjects){
+            if(d.getId().equals("ERROR")) return true;
+        }
+        return false; 
+    }
+
+    public Boolean safeTermination(int currentTick){
+        if(currentTick>finishTime){
+            setStatus(STATUS.DOWN);
+            System.out.println("CAMERA TERMINATED IN: " + currentTick);
+            return true;
+        }
+        return false;
+    }
+
+    public StampedDetectedObjects prepareData(int currentTick){
+        for(StampedDetectedObjects s: detectedObjectsList){
+            if(s.getTime() == currentTick){
+                if(checkErrorId(s.getDetectedObjectsList())){
+                    StatisticalFolder.getInstance().setError("camera " + getId() + " disconnected");
+                    System.out.println("INTERRUPTED " + Thread.currentThread().getName() + "TIME: " + s.getTime() );
+                    setStatus(STATUS.ERROR);
+                    return null;
+                }
+                else{
+                    StatisticalFolder.getInstance().addNumDetectedObjects(s.getDetectedObjectsList().size());
+                    StampedDetectedObjects output = s;
+                    detectedObjectsList.remove(s);
+                    return output;
+                }
+            }
+        }
+        return new StampedDetectedObjects();
     }
             
 }

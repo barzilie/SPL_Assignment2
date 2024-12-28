@@ -13,11 +13,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class JsonCameraDataHandler {
 
-    public static  HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraDataHandler(String path) {
+    public static  HashMap<String, ArrayList<Vector<StampedDetectedObjects>>> cameraDataHandler(String path) {
         try (FileReader reader = new FileReader(path)) {
             Gson gson = new Gson();
 
@@ -25,7 +26,7 @@ public class JsonCameraDataHandler {
             //Type StampedDetectedObjectssListType = new TypeToken<ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>>() {}.getType();
 
             // Parse the JSON
-            HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraData = gson.fromJson(reader, new TypeToken<HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>>>() {}.getType());
+            HashMap<String, ArrayList<Vector<StampedDetectedObjects>>> cameraData = gson.fromJson(reader, new TypeToken<HashMap<String, ArrayList<Vector<StampedDetectedObjects>>>>() {}.getType());
             return cameraData;
         } catch (Exception e) {
             System.err.println("Unexpected error during deserialization: " + e.getMessage());

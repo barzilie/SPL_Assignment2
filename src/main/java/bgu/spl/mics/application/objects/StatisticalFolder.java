@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.objects;
 
 import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -10,10 +11,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class StatisticalFolder {
     private String error;
-    //priavte last frames need to add TODO
+    private LastFrames lastFrames;
+
+
     private  Vector<Pose> poses;
 
-    private int systemRuntime;
+    private AtomicInteger systemRuntime;
     private AtomicInteger numDetectedObjects;
     private AtomicInteger numTrackedObjects;
     private int numLandMarks;
@@ -27,9 +30,10 @@ public class StatisticalFolder {
 
     private StatisticalFolder(){
         this.error = null;
-        //add lastframes TODO
-        this.poses = null; 
-        this.systemRuntime = 0;
+        this.lastFrames = null;
+        this.poses = null;
+
+        this.systemRuntime = new AtomicInteger(0);
         this.numDetectedObjects = new AtomicInteger(0);
         this.numTrackedObjects = new AtomicInteger(0);
         this.numLandMarks = 0;
@@ -53,7 +57,14 @@ public class StatisticalFolder {
     }
 
     public int getSystemRuntime() {
-        return systemRuntime;
+        return systemRuntime.get();
+    }
+
+    public void setSystemRuntime(int crashTime) {
+        int oldTime;
+        do{
+            oldTime = systemRuntime.get();
+        } while(!systemRuntime.compareAndSet(oldTime, crashTime));
     }
 
     public int getNumDetectedObjects() {
@@ -70,8 +81,14 @@ public class StatisticalFolder {
 
     
     public void increaseSystemRuntime(){
-        systemRuntime++;
+        int oldTime;
+        int newTime;
+        do{
+            oldTime = systemRuntime.get();
+            newTime = oldTime + 1;
+        } while(!systemRuntime.compareAndSet(oldTime, newTime));
     }
+
     public void addNumDetectedObjects(int toAdd){
         int oldNumDetectedObjects;
         int newNumDetectedObjects;
@@ -104,5 +121,9 @@ public class StatisticalFolder {
     
     public void setTerminateClock() {
         this.terminateClock = true;
+    }
+
+    public void setLastFrames(LastFrames lastFrames) {
+        this.lastFrames = lastFrames;
     }
 }

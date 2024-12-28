@@ -13,6 +13,7 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.LastFrames;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.STATUS;
@@ -32,11 +33,8 @@ import bgu.spl.mics.application.objects.TrackedObject;
 public class LiDarService extends MicroService {
     private int currentTick = 0;
     private LiDarWorkerTracker lidarWT; 
-    private LiDarDataBase lidarDataBase;
     private ConcurrentLinkedQueue<Future<Boolean>> lidarFutures;
     private ConcurrentLinkedQueue<TrackedObjectsEvent> eventsToSend;
-    private int finishTime = 0;
-    private int errorTime = -1;
 
 
     /**
@@ -47,11 +45,11 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker, String lidarDBPath) {
         super("LiDarService: "+ LiDarWorkerTracker.getId());
         this.lidarWT = LiDarWorkerTracker;
-        this.lidarDataBase = LiDarDataBase.getInstance(lidarDBPath);
+        this.lidarWT.setLidarDataBase(LiDarDataBase.getInstance(lidarDBPath));
+        this.lidarWT.initializeFinishTime();
+        this.lidarWT.checkErrorId();
         this.lidarFutures = new ConcurrentLinkedQueue<>();
         this.eventsToSend = new ConcurrentLinkedQueue<TrackedObjectsEvent>();
-        initializeFinishTime();
-        checkErrorId();
         initialize();
         System.out.println("Lidar: " + LiDarWorkerTracker.getId());
     }
@@ -63,88 +61,41 @@ public class LiDarService extends MicroService {
      */
     @Override
     protected void initialize() {
-        subscribeBroadcast(TickBroadcast.class, this::handleTick);
-        subscribeBroadcast(TerminatedBroadcast.class, this::handleTerminated);
-        subscribeBroadcast(CrashedBroadcast.class, this::handleCrashed);
-        subscribeEvent(DetectObjectsEvent.class, this::handleDetectObject);   
-    }
 
-    //callback function for TickBroadcasts
-    protected void handleTick(TickBroadcast tick){
-        currentTick++; 
-        if(finishTime<currentTick){
-            System.out.println("LIDAR TERMINATED IN: " + this.currentTick);
-            lidarWT.setStatus(STATUS.DOWN);
-            terminate();
-        }
-
-        else if(errorTime == currentTick){
-            System.out.println("LIDAR ERROR FOUND IN: " + this.currentTick);
-            StatisticalFolder.getInstance().setError("lidar " + lidarWT.getId() + " disconnected");
-            this.lidarWT.setStatus(STATUS.ERROR);
-            Thread.currentThread().interrupt();
-        }
-
-        else if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
-            TrackedObjectsEvent event = eventsToSend.poll();
-            lidarFutures.add(sendEvent(event));
-            this.lidarWT.setLastTrackedObjects(event.getTrackedObjects());
-        }
-    }    
-
-    //callback function for TerminatedBroadcast
-    private void handleTerminated(TerminatedBroadcast terminated){ 
-        //add to statistics and do the termination stuff
-        if(terminated.getSenderName().equals("TimeService")){
-            terminate();
-        }
-    }
-
-    //callback function for CrashedBroadcast
-    private void handleCrashed(CrashedBroadcast crashed){
-        //add to statistics and do the termination stuff and more crashed things page 23
-        lidarWT.setStatus(STATUS.DOWN);
-        terminate();
-        
-    }
-
-    private void handleDetectObject(DetectObjectsEvent detectObject){
-        ConcurrentLinkedQueue<TrackedObject> trackedObjects = new ConcurrentLinkedQueue<>();
-        StampedDetectedObjects stampedObjects = detectObject.getDetectedObjects();
-        int detectionTime = stampedObjects.getTime();
-        //NOTICE: i changed the time here a little bit so it will capture also earlier object like BIN - time 9 measured in time 8
-        for(DetectedObject object: stampedObjects.getDetectedObjectsList()){
-            String objectId = object.getId();
-            String ObjectDescription = object.getDescription();
-            StampedCloudPoints stampedCP = this.lidarDataBase.retrieveCloudPoint(detectionTime, objectId);
-            Vector<CloudPoint> coordinates = new Vector<CloudPoint>();
-            for(List<Double> listCP: stampedCP.getCloudPoints()){
-                coordinates.add(new CloudPoint(listCP.get(0),listCP.get(1)));
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick)->{
+            currentTick++; 
+            if(lidarWT.isFinish(currentTick)){
+                terminate();
             }
-            trackedObjects.add(new TrackedObject(objectId, detectionTime, ObjectDescription, coordinates));
-            complete(detectObject, coordinates);
-        }
-        StatisticalFolder.getInstance().addNumTrackedObjects(trackedObjects.size());
-        eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
-    }
-
-    private void initializeFinishTime(){
-        int finish=0;
-        for(StampedCloudPoints s: lidarDataBase.getCloudPoints()){
-            if(s.getTime()>finish){
-                finish = s.getTime();
+            else if(lidarWT.isError(currentTick)){
+                sendBroadcast(new CrashedBroadcast(this.currentTick));
+                Thread.currentThread().interrupt();
             }
-        }
-        this.finishTime = finish;
+            else if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
+                TrackedObjectsEvent event = eventsToSend.poll();
+                lidarFutures.add(sendEvent(event));
+            }
+        }  );
+
+        subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated)->{ 
+            //add to statistics and do the termination stuff
+            if(terminated.getSenderName().equals("TimeService")){
+                terminate();
+            }
+        });
+
+        subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed)->{
+            lidarWT.handleCrash();
+            terminate();
+        });
+        subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent detectObject)->{
+            StampedDetectedObjects stampedObjects = detectObject.getDetectedObjects();
+            int detectionTime = stampedObjects.getTime();
+            ConcurrentLinkedQueue<TrackedObject> trackedObjects = lidarWT.handleDetectObject(detectObject, detectionTime);
+    
+            eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+            complete(detectObject, true);
+        });   
     }
 
-    private void checkErrorId(){
-        ConcurrentLinkedQueue<StampedCloudPoints> DB = lidarDataBase.getCloudPoints();
-        for(StampedCloudPoints scp: DB){
-           if(scp.getId().equals("ERROR")){
-            this.errorTime = scp.getTime();
-            break;
-           }
-        }
-    }
 }

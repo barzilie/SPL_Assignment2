@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.JsonConfigHandler.Lidars;
+import bgu.spl.mics.application.JsonConfigHandler.LidarWorkers;
 import bgu.spl.mics.application.JsonConfigHandler.RootObject;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
@@ -51,7 +51,7 @@ public class GurionRockRunner {
 
             // Parse the JSON
             RootObject rootObject = gson.fromJson(reader, RootObject.class);
-            HashMap<String, ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
+            HashMap<String, ArrayList<Vector<StampedDetectedObjects>>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
             ExecutorService executor = Executors.newCachedThreadPool();
             Vector<MicroService> microServices = JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
            // Vector<Thread> threads = new Vector<>();

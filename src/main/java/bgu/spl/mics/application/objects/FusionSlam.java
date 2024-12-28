@@ -4,6 +4,9 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.TrackedObjectsEvent;
+
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
  * Combines data from multiple sensors (e.g., LiDAR, camera) to build and update a global map.
@@ -12,10 +15,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class FusionSlam {
     private Vector<LandMark> landmarks;
     private Vector<Pose> poses;
+    private StatisticalFolder statisticalFolder;
     
     private FusionSlam(){
         this.landmarks = new Vector<>();
         this.poses = new Vector<>();
+        this.statisticalFolder = StatisticalFolder.getInstance();
     }
     // Singleton instance holder
     private static class FusionSlamHolder {
@@ -67,6 +72,34 @@ public class FusionSlam {
 
     public void addPose(Pose p){
         poses.add(p);
+    }
+
+    //public for testing 
+    public void handleTrackedObject(TrackedObjectsEvent trackedObjects){
+        for(TrackedObject object: trackedObjects.getTrackedObjects()){
+            ConcurrentLinkedQueue<CloudPoint> ObjectGlobalCoordinates = convertToGlobal(object);
+            LandMark toRefine = retrieveLandmark(object.getId());
+            if(toRefine == null){
+                LandMark toAdd = new LandMark(object.getId(),object.getDescription(), ObjectGlobalCoordinates);
+                addLandMark(toAdd);
+                statisticalFolder.increaseNumLandMarks();
+                statisticalFolder.addLandMarks(toAdd);
+            }
+            else{
+                 toRefine.setCoordinates(refineCoordinates(toRefine.getCoordinates(), ObjectGlobalCoordinates));
+            }
+        }
+        
+    }
+
+    public void updateStatisticsBeforeCrash(CrashedBroadcast crashed){
+        setTerminateClock();
+        statisticalFolder.setLastFrames(LastFrames.getInstance());
+        statisticalFolder.setSystemRuntime(crashed.getCrashTime());
+    }
+
+    public void setTerminateClock(){
+        statisticalFolder.setTerminateClock();
     }
     
 

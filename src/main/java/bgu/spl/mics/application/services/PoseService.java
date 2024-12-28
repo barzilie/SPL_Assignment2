@@ -9,6 +9,8 @@ import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.LastFrames;
+import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 
@@ -40,20 +42,34 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        subscribeBroadcast(TickBroadcast.class, this::handleTick);
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick)->{ 
+            currentTick++;
+            Pose p = this.gpsimu.retrievePose(currentTick);
+            if(p == null){
+                terminate();
+            }
+            else{
+                Future<Boolean> f = sendEvent(new PoseEvent(p));
+                if(gpsimu.failedTosendEvent(f)){
+                    terminate();
+                }
+                else{
+                    poseFutures.add(f);
+                }
+            }
+        });
+
+        //added because wasnt terminating without them
+        subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated)->{ 
+            if(terminated.getSenderName().equals("Fusion Slam")){
+                terminate();
+            }
+        });
+
+        subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed)->{
+            StatisticalFolder.getInstance().setPoses(this.gpsimu.errorPoseList(StatisticalFolder.getInstance().getSystemRuntime()));
+            terminate();
+        });
     }
 
-    //callback function for TickBroadcasts
-    protected void handleTick(TickBroadcast tick){ 
-        currentTick++;
-        Future<Boolean> f = sendEvent(new PoseEvent(this.gpsimu.retrievePose(currentTick)));
-        if(f == null){
-            if(StatisticalFolder.getInstance().getError() == null){
-                StatisticalFolder.getInstance().setPoses(this.gpsimu.errorPoseList(StatisticalFolder.getInstance().getSystemRuntime()));
-            }
-            terminate();
-        }
-        poseFutures.add(f);
-
-    } 
 }

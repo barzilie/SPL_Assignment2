@@ -1,4 +1,6 @@
 package bgu.spl.mics;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
@@ -64,12 +66,21 @@ public class MessageBusImpl implements MessageBus {
 		if(broadcastSubscribers.containsKey(b.getClass())){
 			ConcurrentLinkedQueue<MicroService> recepients = broadcastSubscribers.get(b.getClass());
 			if(recepients != null && !recepients.isEmpty()){
-				for(MicroService ms: recepients){
-					BlockingQueue<Message> q = microServiceQueues.get(ms);
-					synchronized(q){
-						q.add(b);
-						q.notifyAll(); 
-					}	
+				synchronized(recepients){
+					Instant start = Instant.now();
+					System.out.println("BROADLOCKING recepients for: " + Thread.currentThread().getName());
+					if(recepients != null && !recepients.isEmpty()){
+						for(MicroService ms: recepients){
+							BlockingQueue<Message> q = microServiceQueues.get(ms);
+							synchronized(q){
+								q.add(b);
+								q.notifyAll(); 
+							}	
+						}
+					}
+					Instant finish = Instant.now();
+					long timeElapsed = Duration.between(start, finish).toMillis();
+					System.out.println(timeElapsed + " MILISECONDSBROAD");
 				}
 			}
 		}
@@ -82,15 +93,33 @@ public class MessageBusImpl implements MessageBus {
 			System.out.println(" entered first if send event: " + Thread.currentThread());
 			ConcurrentLinkedQueue<MicroService> recepients = eventSubscribers.get(e.getClass());
 			if(recepients != null && !recepients.isEmpty()){
+				MicroService ms = null;
+				//added synchronized for recepients for safety of termination
+				synchronized(recepients){
+					Instant start = Instant.now();
+					System.out.println("LOCKING recepients for: " + Thread.currentThread().getName());
+					if(recepients != null && !recepients.isEmpty()){
+						ms = roundRobin(recepients);
+					}
+					Instant finish = Instant.now();
+					long timeElapsed = Duration.between(start, finish).toMillis();
+					System.out.println(timeElapsed + " MILISECONDS");
+				}
 				Future<T> f = new Future<>();
 				futures.put(e, f);
-				MicroService ms = roundRobin(recepients);
-				BlockingQueue<Message> q = microServiceQueues.get(ms);
-				synchronized(q){ 
-					System.out.println(Thread.currentThread()+": "+e.getClass()+" sent to:"+ ms.getName());
-					q.add(e);
-					q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
+				if(ms!=null){
+					BlockingQueue<Message> q = microServiceQueues.get(ms);
+					if(q!=null){
+						synchronized(q){ 
+							if(q!=null){
+								System.out.println(Thread.currentThread()+": "+e.getClass()+" sent to:"+ ms.getName());
+								q.add(e);
+								//q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
+							}
+						}
+					}
 				}
+
 				return f;
 			}
 			System.out.println("not entered SECOND ONLY if send event: " + Thread.currentThread()+" : "+e.getClass());

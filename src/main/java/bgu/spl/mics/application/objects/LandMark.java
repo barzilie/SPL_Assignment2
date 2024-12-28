@@ -30,5 +30,10 @@ public class LandMark {
         return this.coordinates;
 
     }
+
+    //for testing 
+    public String getDescription() {
+        return this.description;
+    }
     
 }

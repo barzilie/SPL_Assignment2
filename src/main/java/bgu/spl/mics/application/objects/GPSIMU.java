@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import bgu.spl.mics.Future;
+
 /**
  * Represents the robot's GPS and IMU system.
  * Provides information about the robot's position and movement.
@@ -30,6 +32,7 @@ public class GPSIMU {
     }
 
     public Pose retrievePose(int time){
+        if(poseList.size()<time-1) return null;
         return poseList.get(time-1);
     }
 
@@ -53,5 +56,13 @@ public class GPSIMU {
         return output;
     }
 
-
+    public boolean failedTosendEvent(Future<Boolean> f){
+        if(f == null){
+            if(StatisticalFolder.getInstance().getError() != null){
+                StatisticalFolder.getInstance().setPoses(errorPoseList(StatisticalFolder.getInstance().getSystemRuntime()));
+            }
+            return true;
+        }
+        return false;
+    }
 }

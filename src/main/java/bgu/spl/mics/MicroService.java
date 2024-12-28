@@ -29,7 +29,7 @@ public abstract class MicroService implements Runnable {
     private boolean terminated = false; //volatile?
     private final String name;
     private MessageBusImpl mb; 
-    private Map<Class<? extends Message>, Callback<Message>> callbacks;
+    private Map<Class<?>, Callback<?>> callbacks;
 
 
     /**
@@ -64,10 +64,10 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         mb.subscribeEvent(type, this);
-        callbacks.put(type, (Callback<Message>)callback);
+        callbacks.put(type, callback);
     }
 
     /**
@@ -90,10 +90,10 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         mb.subscribeBroadcast(type, this);
-        callbacks.put(type, (Callback<Message>)callback);    
+        callbacks.put(type, callback);    
     }
 
     /**
@@ -171,7 +171,9 @@ public abstract class MicroService implements Runnable {
                 if (msg != null){
                     Class<? extends Message> msgClass = msg.getClass();
                     if(callbacks.containsKey(msgClass)){
-                        callbacks.get(msgClass).call(msg);
+                        @SuppressWarnings("unchecked")
+                        Callback <Message> callback = (Callback<Message>)callbacks.get(msgClass);
+                        callback.call(msg);
                     }
                 }
             }
