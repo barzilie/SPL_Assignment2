@@ -48,12 +48,14 @@ public class PoseService extends MicroService {
         currentTick++;
         Future<Boolean> f = sendEvent(new PoseEvent(this.gpsimu.retrievePose(currentTick)));
         if(f == null){
-            if(StatisticalFolder.getInstance().getError() == null){
+            if(StatisticalFolder.getInstance().getError() != null){
                 StatisticalFolder.getInstance().setPoses(this.gpsimu.errorPoseList(StatisticalFolder.getInstance().getSystemRuntime()));
             }
             terminate();
         }
-        poseFutures.add(f);
+        else{
+            poseFutures.add(f);
+        }
 
     } 
 }

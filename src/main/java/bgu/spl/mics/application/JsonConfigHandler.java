@@ -36,7 +36,7 @@ public class JsonConfigHandler {
         }
     }
 
-    public static class Lidars {
+    public static class LidarWorkers {
         private List<LiDarWorkerTracker> LidarConfigurations;
         private String lidars_data_path;
 
@@ -52,7 +52,7 @@ public class JsonConfigHandler {
 
     public static class RootObject {
         private Cameras Cameras;
-        private Lidars Lidars;
+        private LidarWorkers LidarWorkers;
         private String poseJsonFile;
         private int TickTime = 0;
         private int Duration = 0;
@@ -62,8 +62,8 @@ public class JsonConfigHandler {
             return Cameras;
         }
 
-        public Lidars getLidars() {
-            return Lidars;
+        public LidarWorkers getLidars() {
+            return LidarWorkers;
         }
 
         public String getPoseJsonFile() {
@@ -95,9 +95,11 @@ public class JsonConfigHandler {
             System.out.println("Error: CamerasConfigurations is null.");
         }
         if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarsObjects() != null) {
+            System.out.println("LIDAR IS NOT NULL IN ROOT");
             for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
                 lidar.setStatus(STATUS.UP);
                 fusionSlam.incrementNumOfSensors();
+                System.out.println("LIDAR LOOP ENTERED");
                 microServices.add(new LiDarService(lidar, rootObject.getLidars().getLidars_data_path()));
             }
         } else {

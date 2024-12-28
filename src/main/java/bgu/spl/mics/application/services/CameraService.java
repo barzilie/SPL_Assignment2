@@ -12,6 +12,7 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.LastFrames;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
@@ -80,7 +81,7 @@ public class CameraService extends MicroService {
                         StatisticalFolder.getInstance().setError("camera " + camera.getId() + " disconnected");
                         System.out.println("INTERRUPTED " + Thread.currentThread().getName() + "TIME: " + s.getTime() );
                         camera.setStatus(STATUS.ERROR);
-                        sendBroadcast(new CrashedBroadcast());
+                        sendBroadcast(new CrashedBroadcast(this.currentTick));
                         Thread.currentThread().interrupt();
                     }
                     else{
@@ -106,8 +107,9 @@ public class CameraService extends MicroService {
     //callback function for CrashedBroadcast
     private void handleCrashed(CrashedBroadcast crashed){
         //add to statistics and do the termination stuff and more crashed things page 23
-        terminate();
+        LastFrames.getInstance().addCameraLastFrames("camera: " + camera.getId(), this.camera.getDetectedObjectsAtTime(crashed.getCrashTime()));
         camera.setStatus(STATUS.DOWN);
+        terminate();
     }
 
     private boolean checkErrorId (ConcurrentLinkedQueue<DetectedObject> detectedObjects){
@@ -126,6 +128,8 @@ public class CameraService extends MicroService {
         }
         this.finishTime = finish;
     }
+
+
 
 
 

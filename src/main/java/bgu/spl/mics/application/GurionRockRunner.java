@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.JsonConfigHandler.Lidars;
+import bgu.spl.mics.application.JsonConfigHandler.LidarWorkers;
 import bgu.spl.mics.application.JsonConfigHandler.RootObject;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;

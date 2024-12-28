@@ -64,7 +64,6 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
-    @SuppressWarnings("unchecked")
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         mb.subscribeEvent(type, this);
         callbacks.put(type, (Callback<Message>)callback);
@@ -90,7 +89,6 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
-    @SuppressWarnings("unchecked")
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         mb.subscribeBroadcast(type, this);
         callbacks.put(type, (Callback<Message>)callback);    

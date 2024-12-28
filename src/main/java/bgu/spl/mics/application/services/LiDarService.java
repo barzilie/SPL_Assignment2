@@ -13,6 +13,7 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.LastFrames;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.STATUS;
@@ -82,13 +83,13 @@ public class LiDarService extends MicroService {
             System.out.println("LIDAR ERROR FOUND IN: " + this.currentTick);
             StatisticalFolder.getInstance().setError("lidar " + lidarWT.getId() + " disconnected");
             this.lidarWT.setStatus(STATUS.ERROR);
+            sendBroadcast(new CrashedBroadcast(this.currentTick));
             Thread.currentThread().interrupt();
         }
 
         else if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
             TrackedObjectsEvent event = eventsToSend.poll();
             lidarFutures.add(sendEvent(event));
-            this.lidarWT.setLastTrackedObjects(event.getTrackedObjects());
         }
     }    
 
@@ -102,8 +103,8 @@ public class LiDarService extends MicroService {
 
     //callback function for CrashedBroadcast
     private void handleCrashed(CrashedBroadcast crashed){
-        //add to statistics and do the termination stuff and more crashed things page 23
         lidarWT.setStatus(STATUS.DOWN);
+        LastFrames.getInstance().addLidarLastFrames("lidar: "+ lidarWT.getId(), lidarWT.getTrackedObjectsList());
         terminate();
         
     }
@@ -126,6 +127,7 @@ public class LiDarService extends MicroService {
         }
         StatisticalFolder.getInstance().addNumTrackedObjects(trackedObjects.size());
         eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+        this.lidarWT.setLastTrackedObjects(trackedObjects);
     }
 
     private void initializeFinishTime(){

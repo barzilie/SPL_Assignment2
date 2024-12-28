@@ -15,6 +15,7 @@ import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.LandMark;
+import bgu.spl.mics.application.objects.LastFrames;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedCloudPoints;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
@@ -89,11 +90,13 @@ public class FusionSlamService extends MicroService {
     //callback function for CrashedBroadcast
     private void handleCrashed(CrashedBroadcast crashed){
         //add to statistics and do the termination stuff and more crashed things page 23
+        statisticalFolder.setLastFrames(LastFrames.getInstance());
         statisticalFolder.setTerminateClock();
+        statisticalFolder.setSystemRuntime(crashed.getCrashTime());
         terminate();
     }
-
-    private void handleTrackedObject(TrackedObjectsEvent trackedObjects){
+    //public for testing 
+    public void handleTrackedObject(TrackedObjectsEvent trackedObjects){
         for(TrackedObject object: trackedObjects.getTrackedObjects()){
             ConcurrentLinkedQueue<CloudPoint> ObjectGlobalCoordinates = fusionSlam.convertToGlobal(object);
             LandMark toRefine = fusionSlam.retrieveLandmark(object.getId());
