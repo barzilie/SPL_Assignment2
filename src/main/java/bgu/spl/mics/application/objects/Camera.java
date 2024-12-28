@@ -3,10 +3,6 @@ package bgu.spl.mics.application.objects;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import bgu.spl.mics.Future;
-import bgu.spl.mics.application.messages.CrashedBroadcast;
-import bgu.spl.mics.application.messages.DetectObjectsEvent;
-
 /**
  * Represents a camera sensor on the robot.
  * Responsible for detecting objects in the environment.

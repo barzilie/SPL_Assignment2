@@ -67,6 +67,7 @@ public class LiDarService extends MicroService {
             if(lidarWT.isFinish(currentTick)){
                 terminate();
             }
+            //maybe should be moved to the handleDetectedEvent according to ahmed's answer
             else if(lidarWT.isError(currentTick)){
                 sendBroadcast(new CrashedBroadcast(this.currentTick));
                 Thread.currentThread().interrupt();

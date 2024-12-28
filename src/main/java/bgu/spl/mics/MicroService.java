@@ -2,7 +2,6 @@ package bgu.spl.mics;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 

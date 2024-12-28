@@ -1,12 +1,7 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.Vector;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import bgu.spl.mics.Message;
-import bgu.spl.mics.MicroService;
 
 public class LastFrames {
 

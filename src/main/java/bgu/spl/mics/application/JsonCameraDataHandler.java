@@ -1,20 +1,14 @@
 package bgu.spl.mics.application;
 
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
-
-import java.io.FileReader;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class JsonCameraDataHandler {
 

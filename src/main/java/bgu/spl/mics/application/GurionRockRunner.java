@@ -1,30 +1,21 @@
 package bgu.spl.mics.application;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.JsonConfigHandler.LidarWorkers;
-import bgu.spl.mics.application.JsonConfigHandler.RootObject;
-import bgu.spl.mics.application.objects.Camera;
-import bgu.spl.mics.application.objects.LiDarWorkerTracker;
-import bgu.spl.mics.application.objects.StampedDetectedObjects;
-import bgu.spl.mics.application.objects.StatisticalFolder;
-import bgu.spl.mics.application.services.CameraService;
-import bgu.spl.mics.application.services.LiDarService;
-import bgu.spl.mics.application.services.TimeService;
-
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import com.google.gson.Gson;
+
+import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.JsonConfigHandler.RootObject;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
+import bgu.spl.mics.application.services.TimeService;
 
 
 

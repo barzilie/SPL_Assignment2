@@ -1,7 +1,6 @@
 package bgu.spl.mics.application.objects;
 
 import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

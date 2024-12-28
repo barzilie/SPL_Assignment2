@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.Camera;
@@ -17,7 +16,6 @@ import bgu.spl.mics.application.services.CameraService;
 import bgu.spl.mics.application.services.FusionSlamService;
 import bgu.spl.mics.application.services.LiDarService;
 import bgu.spl.mics.application.services.PoseService;
-import bgu.spl.mics.application.services.TimeService;
 
 public class JsonConfigHandler {
 
