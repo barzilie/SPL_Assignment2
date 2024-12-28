@@ -9,7 +9,7 @@
             "name": "GurionRockRunner",
             "request": "launch",
             "mainClass": "bgu.spl.mics.application.GurionRockRunner",
-            "projectName": "spl224ass2",
+            "projectName": "spl225ass2",
             "args": "./configuration_file.json",
             "cwd": "/workspaces/SPL_Assignment2/example_input2"
         },
