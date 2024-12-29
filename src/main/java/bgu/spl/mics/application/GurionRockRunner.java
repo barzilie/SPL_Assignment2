@@ -42,7 +42,8 @@ public class GurionRockRunner {
 
             // Parse the JSON
             RootObject rootObject = gson.fromJson(reader, RootObject.class);
-            HashMap<String, ArrayList<Vector<StampedDetectedObjects>>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
+            //changed jsonHandler for new camera configurations scheme
+            HashMap<String, Vector<StampedDetectedObjects>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
             ExecutorService executor = Executors.newCachedThreadPool();
             Vector<MicroService> microServices = JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
            // Vector<Thread> threads = new Vector<>();

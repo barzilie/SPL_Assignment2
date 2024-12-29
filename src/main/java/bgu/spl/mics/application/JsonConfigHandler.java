@@ -78,13 +78,13 @@ public class JsonConfigHandler {
     }
 
     public static Vector<MicroService> buildServicesConfig(RootObject rootObject,
-     HashMap<String, ArrayList<Vector<StampedDetectedObjects>>> cameraMap){
+     HashMap<String, Vector<StampedDetectedObjects>> cameraMap){
         Vector<MicroService> microServices = new Vector<>();
         FusionSlamService fusionSlam = new FusionSlamService(FusionSlam.getInstance());
         microServices.add(fusionSlam);
         if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getListCameras() != null) {
             for (Camera camera : rootObject.getCameras().getListCameras()) {
-                camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()).get(0));
+                camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()));
                 camera.setStatus(STATUS.UP);
                 fusionSlam.incrementNumOfSensors();
                 microServices.add(new CameraService(camera));

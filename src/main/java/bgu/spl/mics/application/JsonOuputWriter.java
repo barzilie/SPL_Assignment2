@@ -15,7 +15,7 @@ public class JsonOuputWriter {
     public static void createOutput(Object StatisticalFolder){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        try (FileWriter writer = new FileWriter("output.json")) {
+        try (FileWriter writer = new FileWriter("output_file.json")) {
             gson.toJson(StatisticalFolder, writer);
             System.out.println("JSON data written to output.json");
         } catch (IOException e) {

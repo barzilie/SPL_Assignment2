@@ -85,7 +85,8 @@ public class LiDarService extends MicroService {
             StampedDetectedObjects stampedObjects = detectObject.getDetectedObjects();
             int detectionTime = stampedObjects.getTime();
             ConcurrentLinkedQueue<TrackedObject> trackedObjects = lidarWT.handleDetectObject(detectObject, detectionTime);
-    
+
+            //maybe check if relevant to send and send the event right away
             eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
             complete(detectObject, true);
         });   

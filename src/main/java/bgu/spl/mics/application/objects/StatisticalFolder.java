@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class StatisticalFolder {
 
+    //change the fields a bit according to ver1.3.1
     private String error;
     private LastFrames lastFrames;
     private  Vector<Pose> poses;
