@@ -58,12 +58,19 @@ public class GurionRockRunner {
             } else {
                 System.out.println("Error: ClockConfiguration is null.");
             }
-            executor.awaitTermination(1, TimeUnit.SECONDS);
+            executor.shutdown(); 
+            try{
+                executor.awaitTermination(100, TimeUnit.SECONDS);
+            }
+            catch(InterruptedException e){
+
+            }
+            JsonOuputWriter.createOutput(SF);
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error reading JSON file: " + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Unexpected error during deserialization: " + e.getMessage());
+            System.err.println("Unexpected error: " + e.getMessage());
             e.printStackTrace();
         }
 

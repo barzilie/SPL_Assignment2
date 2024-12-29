@@ -1,7 +1,5 @@
 package bgu.spl.mics.application.services;
 
-import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bgu.spl.mics.Future;
@@ -11,15 +9,9 @@ import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
-import bgu.spl.mics.application.objects.CloudPoint;
-import bgu.spl.mics.application.objects.DetectedObject;
-import bgu.spl.mics.application.objects.LastFrames;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
-import bgu.spl.mics.application.objects.STATUS;
-import bgu.spl.mics.application.objects.StampedCloudPoints;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
-import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 
 /**

@@ -148,6 +148,7 @@ public abstract class MicroService implements Runnable {
         this.terminated = true;
         sendBroadcast(new TerminatedBroadcast(this.getName()));
         System.out.println(this.getName() + " TERMINATED!!!!!!!!!");
+
     }
 
     /**

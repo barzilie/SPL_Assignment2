@@ -9,10 +9,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * the number of objects detected and tracked, and the number of landmarks identified.
  */
 public class StatisticalFolder {
+
     private String error;
     private LastFrames lastFrames;
-
-
     private  Vector<Pose> poses;
 
     private AtomicInteger systemRuntime;
