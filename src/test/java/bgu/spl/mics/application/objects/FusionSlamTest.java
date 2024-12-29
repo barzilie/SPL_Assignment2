@@ -37,9 +37,9 @@ class FusionSlamTest {
         TrackedObject toB = new TrackedObject("Bed_2", 1, "sleep", coordinatesB);
         trackedObjects.add(toB);
         Vector<CloudPoint> coordinatesC = new Vector<>();
-        coordinatesB.add(new CloudPoint(1, 0));
-        coordinatesB.add(new CloudPoint(4, 10));  
-        TrackedObject toC = new TrackedObject("table_2", 1, "sleep", coordinatesB);
+        coordinatesC.add(new CloudPoint(1, 0));
+        coordinatesC.add(new CloudPoint(4, 10));  
+        TrackedObject toC = new TrackedObject("table_2", 1, "table", coordinatesC);
         trackedObjects.add(toC);
         this.trackedObjectEvent = new TrackedObjectsEvent(trackedObjects, 1);
         fusionSlam.handleTrackedObject(trackedObjectEvent);
@@ -144,7 +144,6 @@ class FusionSlamTest {
             CloudPoint cpLM = landMarkIteratorA.next();
             CloudPoint cpGC = globalCoordinatesIteratorA.next();
             resultCoordinatesA.add(new CloudPoint((cpLM.getX()+cpGC.getX())/2, (cpLM.getY()+cpGC.getY())/2));
-
         }
 
 
@@ -163,6 +162,7 @@ class FusionSlamTest {
             CloudPoint resultCP = resultCoordinatesAIterator.next();
             CloudPoint lamdMarkCP = landMarkIteratorAafter.next();
             assertEquals(resultCP.getX(), lamdMarkCP.getX());
-            assertEquals(resultCP.getY(), lamdMarkCP.getY());            }
+            assertEquals(resultCP.getY(), lamdMarkCP.getY());            
+        }
     }
 }

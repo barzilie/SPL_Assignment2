@@ -55,7 +55,6 @@ public class MessageBusImpl implements MessageBus {
 	@SuppressWarnings("unchecked") 
 	public <T> void complete(Event<T> e, T result) {
 		if(futures.get(e) != null) futures.get(e).resolve(result);
-		// futures.remove(e); //does it need to be removed?
 	}
 
 	@Override
@@ -131,27 +130,7 @@ public class MessageBusImpl implements MessageBus {
 	public void register(MicroService m) {
 		microServiceQueues.put(m, new LinkedBlockingQueue<Message>());
 		System.out.println(m.getClass() + ": registered to bus");
-		//do we need to cunscribe here to event\broadcast ? 
 	}
-
-	// public void unregister(MicroService m) { 
-    //     for(ConcurrentLinkedQueue<MicroService> q: eventSubscribers.values()){
-	// 		if(q.contains(m)){
-	// 			synchronized(q){
-	// 				q.remove(m);
-	// 			}
-	// 		}
-	// 	}
-	// 	for(ConcurrentLinkedQueue<MicroService> q: broadcastSubscribers.values()){
-	// 		if(q.contains(m)){
-	// 			synchronized(q){
-	// 				q.remove(m);
-	// 			}
-	// 		}
-	// 	}
-	// 	//since no events or broadcasts are subscribed by the MicroService - no one will reach it's queue so no need to synchronize
-    //     microServiceQueues.remove(m);
-    // }
 	
 	@Override
 	public void unregister(MicroService m) {
