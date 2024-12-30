@@ -1,5 +1,23 @@
 package bgu.spl.mics.application;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import com.google.gson.Gson;
+
+import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.JsonConfigHandler.RootObject;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
+import bgu.spl.mics.application.services.TimeService;
+
+
+
 /**
  * The main entry point for the GurionRock Pro Max Ultra Over 9000 simulation.
  * <p>
@@ -18,9 +36,39 @@ public class GurionRockRunner {
      */
     public static void main(String[] args) {
         System.out.println("Hello World!");
+        try (FileReader reader = new FileReader(args[0])) {
+            Gson gson = new Gson();
 
-        // TODO: Parse configuration file.
-        // TODO: Initialize system components and services.
-        // TODO: Start the simulation.
+            // Parse the JSON
+            RootObject rootObject = gson.fromJson(reader, RootObject.class);
+            //changed jsonHandler for new camera configurations scheme
+            HashMap<String, Vector<StampedDetectedObjects>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
+            ExecutorService executor = Executors.newCachedThreadPool();
+            Vector<MicroService> microServices = JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
+           // Vector<Thread> threads = new Vector<>();
+            for(MicroService ms: microServices){
+                executor.execute(ms);
+            }
+            StatisticalFolder SF = StatisticalFolder.getInstance();
+            if (rootObject != null && rootObject.getTickTime() != 0 && rootObject.getDuration() != 0) {
+                executor.execute(new TimeService(rootObject.getTickTime(), rootObject.getDuration()));
+            } else {
+                System.out.println("Error: ClockConfiguration is null.");
+            }
+            executor.shutdown(); 
+            try{
+                executor.awaitTermination(180, TimeUnit.SECONDS);
+            }
+            catch(InterruptedException e){
+
+            }
+            JsonOuputWriter.createOutput(SF);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error reading JSON file: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

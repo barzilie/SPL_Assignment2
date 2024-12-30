@@ -1,5 +1,10 @@
 package bgu.spl.mics;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+
 /**
  * The MicroService is an abstract class that any micro-service in the system
  * must extend. The abstract MicroService class is responsible to get and
@@ -20,8 +25,11 @@ package bgu.spl.mics;
  */
 public abstract class MicroService implements Runnable {
 
-    private boolean terminated = false;
+    private boolean terminated = false; //volatile?
     private final String name;
+    private MessageBusImpl mb; 
+    private Map<Class<?>, Callback<?>> callbacks;
+
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -29,6 +37,9 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
         this.name = name;
+        this.mb = MessageBusImpl.getInstance();
+        this.callbacks = new HashMap<>();
+        this.mb.register(this);
     }
 
     /**
@@ -52,8 +63,10 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
+    //@SuppressWarnings("unchecked")
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-        //TODO: implement this.
+        mb.subscribeEvent(type, this);
+        callbacks.put(type, callback);
     }
 
     /**
@@ -76,8 +89,10 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
+    //@SuppressWarnings("unchecked")
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
-        //TODO: implement this.
+        mb.subscribeBroadcast(type, this);
+        callbacks.put(type, callback);    
     }
 
     /**
@@ -93,8 +108,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        //TODO: implement this.
-        return null; //TODO: delete this line :)
+        return this.mb.sendEvent(e);
     }
 
     /**
@@ -104,7 +118,7 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
-        //TODO: implement this.
+        this.mb.sendBroadcast(b);    
     }
 
     /**
@@ -118,7 +132,7 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        //TODO: implement this.
+        this.mb.complete(e, result);
     }
 
     /**
@@ -132,6 +146,9 @@ public abstract class MicroService implements Runnable {
      */
     protected final void terminate() {
         this.terminated = true;
+        sendBroadcast(new TerminatedBroadcast(this.getName()));
+        System.out.println(this.getName() + " TERMINATED!!!!!!!!!");
+
     }
 
     /**
@@ -143,15 +160,29 @@ public abstract class MicroService implements Runnable {
     }
 
     /**
-     * The entry point of the micro-service. TODO: you must complete this code
+     * The entry point of the micro-service: you must complete this code
      * otherwise you will end up in an infinite loop.
      */
     @Override
     public final void run() {
-        initialize();
         while (!terminated) {
-            System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)
+            try{
+                Message msg = this.mb.awaitMessage(this);
+                if (msg != null){
+                    Class<? extends Message> msgClass = msg.getClass();
+                    if(callbacks.containsKey(msgClass)){
+                        @SuppressWarnings("unchecked")
+                        Callback <Message> callback = (Callback<Message>)callbacks.get(msgClass);
+                        callback.call(msg);
+                    }
+                }
+            }
+            catch(InterruptedException e){
+                System.out.println(getName() + " ENTERED run CATCH");
+                terminate();
+            } 
         }
+        this.mb.unregister(this); 
     }
 
 }

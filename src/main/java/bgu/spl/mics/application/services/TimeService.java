@@ -1,12 +1,19 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 
 /**
  * TimeService acts as the global timer for the system, broadcasting TickBroadcast messages
  * at regular intervals and controlling the simulation's duration.
  */
 public class TimeService extends MicroService {
+    private int tickTime;
+    private int duration;
+    private int timeLeft;
+    private StatisticalFolder statisticalFolder = StatisticalFolder.getInstance();
+
 
     /**
      * Constructor for TimeService.
@@ -15,8 +22,12 @@ public class TimeService extends MicroService {
      * @param Duration  The total number of ticks before the service terminates.
      */
     public TimeService(int TickTime, int Duration) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("TimeService");
+        this.tickTime = TickTime;
+        this.duration = Duration;
+        this.timeLeft = Duration;
+        System.out.println("time: " + duration);
+        initialize();
     }
 
     /**
@@ -25,6 +36,18 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        while(timeLeft>0 && !statisticalFolder.terminateClock()){
+            sendBroadcast(new TickBroadcast());
+            statisticalFolder.increaseSystemRuntime();
+            try{
+                Thread.sleep(tickTime*1000);
+            }catch(InterruptedException e){
+                break;
+            }
+            timeLeft--;
+        }
+        System.out.println("clock terminated");
+        terminate();
+
     }
 }

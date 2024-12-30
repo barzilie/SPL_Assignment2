@@ -18,7 +18,6 @@ public class Future<T> {
 	 */
 	public Future() {
 		this.futureObject = null;
-		//TODO: implement this
 	}
 	
 	/**
@@ -39,7 +38,6 @@ public class Future<T> {
 			}
 		}
 		return futureObject;
-		//TODO: implement this.
 		//return null;
 	}
 	
@@ -48,18 +46,14 @@ public class Future<T> {
      */
 	public synchronized void resolve (T result) {
 		this.futureObject = result;
-		this.resolved = true;
-		this.notifyall();
-		//TODO: implement this.
+		this.notifyAll();
 	}
 	
 	/**
      * @return true if this object has been resolved, false otherwise
      */
-	public boolean isDone() {
+	public synchronized boolean isDone() {
 		return (this.futureObject!=null);
-		//TODO: implement this.
-		//return false;
 	}
 	
 	/**
@@ -79,13 +73,8 @@ public class Future<T> {
 				unit.timedWait(this, timeout);
 			}
 			catch(InterruptedException e){
-		
 			}
 		}
-			return this.futureObject;
-		}
-		//TODO: implement this.
-		//return null;
+		return this.futureObject;
 	}
-
 }
