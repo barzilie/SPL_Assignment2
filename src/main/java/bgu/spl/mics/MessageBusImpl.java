@@ -1,6 +1,4 @@
 package bgu.spl.mics;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,8 +61,6 @@ public class MessageBusImpl implements MessageBus {
 			ConcurrentLinkedQueue<MicroService> recepients = broadcastSubscribers.get(b.getClass());
 			if(recepients != null && !recepients.isEmpty()){
 				synchronized(recepients){
-					Instant start = Instant.now();
-					System.out.println("BROADLOCKING recepients for: " + Thread.currentThread().getName());
 					if(recepients != null && !recepients.isEmpty()){
 						for(MicroService ms: recepients){
 							BlockingQueue<Message> q = microServiceQueues.get(ms);
@@ -74,9 +70,6 @@ public class MessageBusImpl implements MessageBus {
 							}	
 						}
 					}
-					Instant finish = Instant.now();
-					long timeElapsed = Duration.between(start, finish).toMillis();
-					System.out.println(timeElapsed + " MILISECONDSBROAD");
 				}
 			}
 		}
@@ -86,20 +79,14 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
 		if(eventSubscribers.containsKey(e.getClass())){
-			System.out.println(" entered first if send event: " + Thread.currentThread());
 			ConcurrentLinkedQueue<MicroService> recepients = eventSubscribers.get(e.getClass());
 			if(recepients != null && !recepients.isEmpty()){
 				MicroService ms = null;
 				//added synchronized for recepients for safety of termination
 				synchronized(recepients){
-					Instant start = Instant.now();
-					System.out.println("LOCKING recepients for: " + Thread.currentThread().getName());
 					if(recepients != null && !recepients.isEmpty()){
 						ms = roundRobin(recepients);
 					}
-					Instant finish = Instant.now();
-					long timeElapsed = Duration.between(start, finish).toMillis();
-					System.out.println(timeElapsed + " MILISECONDS");
 				}
 				Future<T> f = new Future<>();
 				futures.put(e, f);
@@ -108,7 +95,6 @@ public class MessageBusImpl implements MessageBus {
 					if(q!=null){
 						synchronized(q){ 
 							if(q!=null){
-								System.out.println(Thread.currentThread()+": "+e.getClass()+" sent to:"+ ms.getName());
 								q.add(e);
 								//q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
 							}

@@ -1,6 +1,5 @@
 package bgu.spl.mics.application;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
@@ -50,7 +49,7 @@ public class JsonConfigHandler {
 
     public static class RootObject {
         private Cameras Cameras;
-        private LidarWorkers LidarWorkers;
+        private LidarWorkers LiDarWorkers;
         private String poseJsonFile;
         private int TickTime = 0;
         private int Duration = 0;
@@ -61,7 +60,7 @@ public class JsonConfigHandler {
         }
 
         public LidarWorkers getLidars() {
-            return LidarWorkers;
+            return LiDarWorkers;
         }
 
         public String getPoseJsonFile() {

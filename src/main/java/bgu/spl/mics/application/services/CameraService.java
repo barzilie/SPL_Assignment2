@@ -25,14 +25,14 @@ public class CameraService extends MicroService {
     private final Camera camera;
     private int currentTick = 0;
     private ConcurrentLinkedQueue<Future<Boolean>> cameraFutures;
-    private int finishTime = 0;
+    //private int finishTime = 0;
     private Vector<DetectObjectsEvent> eventsToSend;
+    private DetectObjectsEvent lastSentEvent;
     
     //maybe add a field of last index that was sent in the stampedlist (and change tickhandle method)
 
     //private List<HashMap<String, Object>> cameraData;
     //private boolean dataLoaded = false; 
-
 
     /**
      * Constructor for CameraService.
@@ -65,7 +65,11 @@ public class CameraService extends MicroService {
                 StampedDetectedObjects sdo = camera.prepareData(currentTick);
                 if(sdo == null){
                     sendBroadcast(new CrashedBroadcast(this.currentTick));
+                    handleCrash();
                     Thread.currentThread().interrupt();
+                }
+                else if(sdo.getDetectedObjectsList().isEmpty()){
+                    //skip else
                 }
                 else{
                     this.eventsToSend.add(new DetectObjectsEvent(sdo, currentTick+camera.getFrequency()));
@@ -73,7 +77,7 @@ public class CameraService extends MicroService {
                 //add if condition for the eventsTosend list
                 if(!eventsToSend.isEmpty() && eventsToSend.get(0).getTimeToSend()==currentTick){
                     Future<Boolean> f = sendEvent(eventsToSend.firstElement());
-                    eventsToSend.remove(0);
+                    lastSentEvent = eventsToSend.remove(0);
                     if(f!=null){
                         cameraFutures.add(f);
                     }
@@ -83,15 +87,25 @@ public class CameraService extends MicroService {
 
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated)->{ 
             if(terminated.getSenderName().equals("TimeService")){
+                camera.setStatus(STATUS.DOWN);
                 terminate();
             }
         });
 
         subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed)->{
-            LastFrames.getInstance().addCameraLastFrames("camera: " + camera.getId(), this.eventsToSend.lastElement().getDetectedObjects());
             camera.setStatus(STATUS.DOWN);
+            handleCrash();
             terminate();
         });
 
-    }    
+    }
+    
+    private void handleCrash(){
+        if(!eventsToSend.isEmpty()){
+            LastFrames.getInstance().addCameraLastFrames("camera: " + camera.getId(), this.eventsToSend.lastElement().getDetectedObjects());
+        }
+        else{
+            LastFrames.getInstance().addCameraLastFrames("camera: " + camera.getId(), this.lastSentEvent.getDetectedObjects());
+        }
+    }
 }

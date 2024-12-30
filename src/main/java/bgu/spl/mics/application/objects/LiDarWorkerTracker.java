@@ -59,7 +59,6 @@ public class LiDarWorkerTracker {
     }
 
     public void handleCrash(){
-        setStatus(STATUS.DOWN);
         LastFrames.getInstance().addLidarLastFrames("lidar: "+ getId(), getTrackedObjectsList());
 
     }
@@ -101,6 +100,7 @@ public class LiDarWorkerTracker {
         if(errorTime == currentTick){
             System.out.println("LIDAR ERROR FOUND IN: " + currentTick);
             StatisticalFolder.getInstance().setError("lidar " + getId() + " disconnected");
+            StatisticalFolder.getInstance().setFaultySensor("lidar " + getId());
             setStatus(STATUS.ERROR);
             return true;
         }

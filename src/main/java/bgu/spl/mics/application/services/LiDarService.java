@@ -11,6 +11,7 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.TrackedObject;
 
@@ -59,9 +60,10 @@ public class LiDarService extends MicroService {
             if(lidarWT.isFinish(currentTick)){
                 terminate();
             }
-            //maybe should be moved to the handleDetectedEvent according to ahmed's answer
+            //MAYBE SHOULD BE MOVED to the handleDetectedEvent according to ahmed's answer !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             else if(lidarWT.isError(currentTick)){
                 sendBroadcast(new CrashedBroadcast(this.currentTick));
+                lidarWT.handleCrash();
                 Thread.currentThread().interrupt();
             }
             else if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
@@ -71,14 +73,15 @@ public class LiDarService extends MicroService {
         }  );
 
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated)->{ 
-            //add to statistics and do the termination stuff
             if(terminated.getSenderName().equals("TimeService")){
+                lidarWT.setStatus(STATUS.DOWN);
                 terminate();
             }
         });
 
         subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed)->{
             lidarWT.handleCrash();
+            lidarWT.setStatus(STATUS.DOWN);
             terminate();
         });
         subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent detectObject)->{
@@ -87,7 +90,12 @@ public class LiDarService extends MicroService {
             ConcurrentLinkedQueue<TrackedObject> trackedObjects = lidarWT.handleDetectObject(detectObject, detectionTime);
 
             //maybe check if relevant to send and send the event right away
-            eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+            if(detectionTime + lidarWT.getFrequency()<=currentTick){
+                sendEvent(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+            }
+            else{
+                eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+            }
             complete(detectObject, true);
         });   
     }

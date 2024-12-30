@@ -36,7 +36,7 @@ public class FusionSlam {
         Pose p = poses.get(trackedObject.getTime()-1);
         double x_robot = p.getX();
         double y_robot = p.getY();
-        double radDegree = (p.getYaw()*Math.PI)/180;
+        double radDegree = (p.getYaw()*(Math.PI/180));
         double cos = Math.cos(radDegree);
         double sin = Math.sin(radDegree);
         for(CloudPoint cp: trackedObject.getCoordinates()){

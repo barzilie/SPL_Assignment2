@@ -2,7 +2,6 @@ package bgu.spl.mics.application;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -48,12 +47,9 @@ public class GurionRockRunner {
             Vector<MicroService> microServices = JsonConfigHandler.buildServicesConfig(rootObject, cameraMap);
            // Vector<Thread> threads = new Vector<>();
             for(MicroService ms: microServices){
-                //Thread thread = new Thread(ms);
-                //threads.add(thread);
-                //thread.start(); 
                 executor.execute(ms);
             }
-            StatisticalFolder SF = StatisticalFolder.getInstance();//TODO: remember this is arg for GSON output
+            StatisticalFolder SF = StatisticalFolder.getInstance();
             if (rootObject != null && rootObject.getTickTime() != 0 && rootObject.getDuration() != 0) {
                 executor.execute(new TimeService(rootObject.getTickTime(), rootObject.getDuration()));
             } else {
@@ -61,7 +57,7 @@ public class GurionRockRunner {
             }
             executor.shutdown(); 
             try{
-                executor.awaitTermination(100, TimeUnit.SECONDS);
+                executor.awaitTermination(180, TimeUnit.SECONDS);
             }
             catch(InterruptedException e){
 
@@ -74,9 +70,5 @@ public class GurionRockRunner {
             System.err.println("Unexpected error: " + e.getMessage());
             e.printStackTrace();
         }
-
-        // TODO: Parse configuration file.
-        // TODO: Initialize system components and services.
-        // TODO: Start the simulation.
     }
 }

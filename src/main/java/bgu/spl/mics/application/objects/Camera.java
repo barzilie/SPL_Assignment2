@@ -96,6 +96,7 @@ public class Camera {
             if(s.getTime() == currentTick){
                 if(checkErrorId(s.getDetectedObjectsList())){
                     StatisticalFolder.getInstance().setError("camera " + getId() + " disconnected");
+                    StatisticalFolder.getInstance().setFaultySensor(camera_key);
                     System.out.println("INTERRUPTED " + Thread.currentThread().getName() + "TIME: " + s.getTime() );
                     setStatus(STATUS.ERROR);
                     return null;

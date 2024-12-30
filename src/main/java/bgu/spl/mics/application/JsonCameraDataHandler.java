@@ -1,7 +1,6 @@
 package bgu.spl.mics.application;
 
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -20,7 +19,7 @@ public class JsonCameraDataHandler {
             //Type StampedDetectedObjectssListType = new TypeToken<ArrayList<ConcurrentLinkedQueue<StampedDetectedObjects>>>() {}.getType();
 
             // Parse the JSON
-            HashMap<String, Vector<StampedDetectedObjects>> cameraData = gson.fromJson(reader, new TypeToken<HashMap<String, ArrayList<Vector<StampedDetectedObjects>>>>() {}.getType());
+            HashMap<String, Vector<StampedDetectedObjects>> cameraData = gson.fromJson(reader, new TypeToken<HashMap<String, Vector<StampedDetectedObjects>>>() {}.getType());
             return cameraData;
         } catch (Exception e) {
             System.err.println("Unexpected error during deserialization: " + e.getMessage());

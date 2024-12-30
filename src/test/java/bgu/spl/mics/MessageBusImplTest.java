@@ -1,128 +1,171 @@
 package bgu.spl.mics;
 
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
-import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.services.CameraService;
-import bgu.spl.mics.application.services.LiDarService;
-import bgu.spl.mics.application.services.TimeService;
+import bgu.spl.mics.application.services.FusionSlamService;
 
-
-import static org.junit.jupiter.api.Assertions.*;
-
+@TestInstance(Lifecycle.PER_CLASS)
 public class MessageBusImplTest {
 
     private MessageBusImpl messageBus;
-    private CameraService cameraService;
-    private LiDarService lidarService;
-    private TimeService timeService;
+    private CameraService cameraService1;
+    private CameraService cameraService2;
+
+    private FusionSlamService fusionSlamService;
     private TickBroadcast tickBroadcast;
     private PoseEvent poseEvent;
     private CrashedBroadcast crashedBroadcast;
 
-    @BeforeEach
-    public void setUp() {
+    @BeforeAll
+    public void setUp(){
+        System.out.println("entered setUp");
         messageBus = MessageBusImpl.getInstance();
-        cameraService = new CameraService(new Camera(1, 2, "cam1"));
-        lidarService = new LiDarService(new LiDarWorkerTracker(2, 3), "LidarDBPath"); 
-        timeService = new TimeService(2, 30); 
-
+        cameraService1 = new CameraService(new Camera(1, 2, "cam1"));
+        cameraService2 = new CameraService(new Camera(5, 4, "cam2"));
+        fusionSlamService = new FusionSlamService(FusionSlam.getInstance()); 
         tickBroadcast = new TickBroadcast();
         poseEvent = new PoseEvent(new Pose(2, 5, 20, 3));
         crashedBroadcast = new CrashedBroadcast(6);
+        messageBus.unregister(cameraService1);
+        messageBus.unregister(cameraService2);
+        messageBus.unregister(fusionSlamService);
 
-        messageBus.register(cameraService);
-        messageBus.register(lidarService);
-        messageBus.register(timeService);
     }
 
     @Test
     public void testSubscribeEvent() {
-        messageBus.subscribeEvent(PoseEvent.class, lidarService);
-        assertTrue(messageBus.getEventSubscribers().get(PoseEvent.class).contains(lidarService));
+        System.out.println("entered testSubscribeEvent");
+        messageBus.register(fusionSlamService);
+        messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
+        assertTrue(messageBus.getEventSubscribers().get(PoseEvent.class).contains(fusionSlamService));
+        messageBus.unregister(fusionSlamService);
     }
 
     @Test
     public void testSubscribeBroadcast() {
-        messageBus.subscribeBroadcast(TickBroadcast.class, cameraService);
-        assertTrue(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).contains(cameraService));
+        System.out.println("entered testSubscribeBroadcast");
+
+        messageBus.register(cameraService1);
+        messageBus.subscribeBroadcast(TickBroadcast.class, cameraService1);
+        assertTrue(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).contains(cameraService1));
+        messageBus.unregister(cameraService1);
+    }
+
+    @Test
+    public void testSendBroadcast() {
+        System.out.println("entered testSendBroadcast");
+
+        messageBus.register(cameraService1);
+        messageBus.register(fusionSlamService);
+        messageBus.subscribeBroadcast(CrashedBroadcast.class, cameraService1);
+        messageBus.subscribeBroadcast(CrashedBroadcast.class, fusionSlamService);
+        messageBus.sendBroadcast(crashedBroadcast);
+        try {
+            assertEquals(crashedBroadcast, messageBus.awaitMessage(cameraService1));
+            assertEquals(crashedBroadcast, messageBus.awaitMessage(fusionSlamService));
+        } catch (Exception e) {
+            fail("Broadcast delivery interrupted");
+        }
+        messageBus.unregister(cameraService1);
+        messageBus.unregister(fusionSlamService);
+
+    }
+
+    @Test
+    public void testSendEvent() {
+        System.out.println("entered testSendEvent");
+
+        messageBus.register(fusionSlamService);
+        messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
+        //messageBus.sendEvent(poseEvent);
+        Future<Boolean> future = messageBus.sendEvent(poseEvent);
+        assertNotNull(future);
+        System.out.println("future is not null");
+        try {
+            assertEquals(poseEvent, messageBus.awaitMessage(fusionSlamService));
+        } catch (Exception e) {
+            fail("Event delivery interrupted");
+        }
+        System.out.println("EXITED");
+        messageBus.unregister(fusionSlamService);
     }
 
     @Test
     public void testComplete() {
-        messageBus.subscribeEvent(PoseEvent.class, timeService);
+        System.out.println("entered testComplete");
+
+        messageBus.register(fusionSlamService);
+        messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
         Future<Boolean> future = messageBus.sendEvent(poseEvent);
         assertNotNull(future);
         messageBus.complete(poseEvent, true);
         assertTrue(future.isDone());
         assertEquals(true, future.get());
-    }
-
-    @Test
-    public void testSendBroadcast() {
-        messageBus.subscribeBroadcast(CrashedBroadcast.class, lidarService);
-        messageBus.subscribeBroadcast(CrashedBroadcast.class, timeService);
-        messageBus.sendBroadcast(crashedBroadcast);
-        try {
-            assertEquals(crashedBroadcast, messageBus.awaitMessage(lidarService));
-            assertEquals(crashedBroadcast, messageBus.awaitMessage(timeService));
-        } catch (Exception e) {
-            fail("Broadcast delivery interrupted");
-        }
-    }
-
-    @Test
-    public void testSendEvent() {
-        messageBus.subscribeEvent(PoseEvent.class, timeService);
-        Future<Boolean> future = messageBus.sendEvent(poseEvent);
-        assertNotNull(future);
-        try {
-            assertEquals(poseEvent, messageBus.awaitMessage(timeService));
-        } catch (Exception e) {
-            fail("Event delivery interrupted");
-        }
+        messageBus.unregister(fusionSlamService);
     }
 
     @Test
     public void testRegisterAndUnregister() {
-        messageBus.register(cameraService);
-        messageBus.subscribeEvent(PoseEvent.class, cameraService);
-        messageBus.subscribeBroadcast(CrashedBroadcast.class, cameraService);
+        System.out.println("entered testSubscribeEvent");
 
-        assertTrue(messageBus.getMicroServiceQueues().containsKey(cameraService));
-        assertTrue(messageBus.getEventSubscribers().get(PoseEvent.class).contains(cameraService));
-        assertTrue(messageBus.getBroadcastSubscribers().get(CrashedBroadcast.class).contains(cameraService));
+        messageBus.register(cameraService1);
+        messageBus.subscribeEvent(PoseEvent.class, cameraService1);
+        messageBus.subscribeBroadcast(CrashedBroadcast.class, cameraService1);
 
-        messageBus.unregister(cameraService);
-        assertFalse(messageBus.getMicroServiceQueues().containsKey(cameraService));
-        assertFalse(messageBus.getEventSubscribers().get(PoseEvent.class).contains(cameraService));
-        assertFalse(messageBus.getBroadcastSubscribers().get(CrashedBroadcast.class).contains(cameraService));
+        assertTrue(messageBus.getMicroServiceQueues().containsKey(cameraService1));
+        assertTrue(messageBus.getEventSubscribers().get(PoseEvent.class).contains(cameraService1));
+        assertTrue(messageBus.getBroadcastSubscribers().get(CrashedBroadcast.class).contains(cameraService1));
+
+        messageBus.unregister(cameraService1);
+        assertFalse(messageBus.getMicroServiceQueues().containsKey(cameraService1));
+        assertFalse(messageBus.getEventSubscribers().get(PoseEvent.class).contains(cameraService1));
+        assertFalse(messageBus.getBroadcastSubscribers().get(CrashedBroadcast.class).contains(cameraService1));
     }
 
 
     @Test
     public void testAwaitMessage() {
-        messageBus.subscribeEvent(PoseEvent.class, lidarService);
+        System.out.println("entered testAwaitMessage");
+
+        messageBus.register(cameraService1);
+        messageBus.subscribeEvent(PoseEvent.class, cameraService1);
         messageBus.sendEvent(poseEvent);
         try {
-            Message message = messageBus.awaitMessage(lidarService);
+            Message message = messageBus.awaitMessage(cameraService1);
+            System.out.println("got the message in try block of awaitmessage");
             assertEquals(poseEvent, message);
         } catch (Exception e) {
             fail("awaitMessage interrupted");
         }
+        messageBus.unregister(cameraService1);
     }
 
     @Test
     public void testRoundRobin() {
-        messageBus.subscribeEvent(PoseEvent.class, lidarService);
-        messageBus.subscribeEvent(PoseEvent.class, cameraService);
-        messageBus.subscribeEvent(PoseEvent.class, timeService);
+        System.out.println("entered testRoundRobin");
+
+        messageBus.register(cameraService2);
+        messageBus.register(cameraService1);
+        messageBus.register(fusionSlamService);
+        messageBus.subscribeEvent(PoseEvent.class, cameraService2);
+        messageBus.subscribeEvent(PoseEvent.class, cameraService1);
+        messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
 
         PoseEvent event1 = new PoseEvent(new Pose(1, 2, 10, 1));
         PoseEvent event2 = new PoseEvent(new Pose(2, 4, -20, 2));
@@ -133,11 +176,14 @@ public class MessageBusImplTest {
         messageBus.sendEvent(event3);
 
         try {
-            assertEquals(event1, messageBus.awaitMessage(lidarService));
-            assertEquals(event2, messageBus.awaitMessage(cameraService));
-            assertEquals(event3, messageBus.awaitMessage(timeService));
+            assertEquals(event1, messageBus.awaitMessage(cameraService2));
+            assertEquals(event2, messageBus.awaitMessage(cameraService1));
+            assertEquals(event3, messageBus.awaitMessage(fusionSlamService));
         } catch (Exception e) {
             fail("Round-robin delivery interrupted");
         }
+        messageBus.unregister(cameraService2);
+        messageBus.unregister(cameraService1);
+        messageBus.unregister(fusionSlamService);
     }
 }

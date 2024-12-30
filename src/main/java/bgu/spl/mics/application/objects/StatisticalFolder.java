@@ -11,7 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StatisticalFolder {
 
     //change the fields a bit according to ver1.3.1
-    private String error;
+    private String Error;
+    private String faultySensor;
     private LastFrames lastFrames;
     private  Vector<Pose> poses;
 
@@ -28,7 +29,7 @@ public class StatisticalFolder {
     }
 
     private StatisticalFolder(){
-        this.error = null;
+        this.Error = null;
         this.lastFrames = null;
         this.poses = null;
 
@@ -44,11 +45,15 @@ public class StatisticalFolder {
     }
 
     public String getError() {
-        return this.error;
+        return this.Error;
     }
 
     public void setError(String error) {
-        this.error = error;
+        this.Error = error;
+    }
+
+    public void setFaultySensor(String faultySensor) {
+        this.faultySensor = faultySensor;
     }
 
     public void setPoses(Vector<Pose> poses) {
