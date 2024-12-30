@@ -1,0 +1,171 @@
+{
+  "Error": "lidar 1 disconnected",
+  "faultySensor": "lidar 1",
+  "lastFrames": {
+    "cameraLastFrames": {
+      "camera: 1": {
+        "time": 7,
+        "detectedObjects": [
+          {
+            "id": "Door",
+            "description": "Door"
+          }
+        ]
+      }
+    },
+    "lidarLastFrames": {
+      "lidar: 1": [
+        {
+          "id": "Wall_4",
+          "time": 6,
+          "description": "Wall",
+          "coordinates": [
+            {
+              "x": -2.5367,
+              "y": -3.3341
+            },
+            {
+              "x": 1.7926,
+              "y": -3.6804
+            }
+          ]
+        },
+        {
+          "id": "Circular_Base_1",
+          "time": 6,
+          "description": "Circular Base",
+          "coordinates": [
+            {
+              "x": 0.73042,
+              "y": -1.1781
+            },
+            {
+              "x": 0.49003,
+              "y": -1.1433
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "poses": [
+    {
+      "time": 1,
+      "x": 0.0,
+      "y": 0.0,
+      "yaw": 0.0
+    },
+    {
+      "time": 2,
+      "x": -3.2076,
+      "y": 0.0755,
+      "yaw": -87.48
+    },
+    {
+      "time": 3,
+      "x": -5.7074,
+      "y": 0.1484,
+      "yaw": -92.68
+    },
+    {
+      "time": 4,
+      "x": -4.953,
+      "y": 1.3106,
+      "yaw": 144.06
+    },
+    {
+      "time": 5,
+      "x": -4.817,
+      "y": 2.8094,
+      "yaw": 132.57
+    },
+    {
+      "time": 6,
+      "x": -3.16,
+      "y": 3.1058,
+      "yaw": -28.08
+    },
+    {
+      "time": 7,
+      "x": -2.366,
+      "y": 0.9327,
+      "yaw": -28.08
+    }
+  ],
+  "systemRuntime": 7,
+  "numDetectedObjects": 6,
+  "numTrackedObjects": 5,
+  "numLandMarks": 5,
+  "landMarks": [
+    {
+      "id": "Wall_1",
+      "description": "Wall",
+      "coordinates": [
+        {
+          "x": 0.4908953928360109,
+          "y": 0.12055924334093296
+        },
+        {
+          "x": 0.3978103367934267,
+          "y": 0.12044636487120144
+        }
+      ]
+    },
+    {
+      "id": "Wall_3",
+      "description": "Wall",
+      "coordinates": [
+        {
+          "x": -7.194370619148762,
+          "y": 3.4069288785523133
+        },
+        {
+          "x": -7.331389573323565,
+          "y": 3.2496124766838395
+        }
+      ]
+    },
+    {
+      "id": "Chair_Base_1",
+      "description": "Chair Base",
+      "coordinates": [
+        {
+          "x": -5.9690692171496,
+          "y": 3.2882506903335442
+        },
+        {
+          "x": -5.927073507360796,
+          "y": 2.903373551548536
+        }
+      ]
+    },
+    {
+      "id": "Wall_4",
+      "description": "Wall",
+      "coordinates": [
+        {
+          "x": -6.967482217833583,
+          "y": 1.3581873950034247
+        },
+        {
+          "x": -3.3107835798172274,
+          "y": -0.9851685853651855
+        }
+      ]
+    },
+    {
+      "id": "Circular_Base_1",
+      "description": "Circular Base",
+      "coordinates": [
+        {
+          "x": -3.0700932288601543,
+          "y": 1.7225610535308697
+        },
+        {
+          "x": -3.265806720135055,
+          "y": 1.8664173062034222
+        }
+      ]
+    }
+  ]
+}

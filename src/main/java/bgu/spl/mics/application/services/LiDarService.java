@@ -19,24 +19,25 @@ import bgu.spl.mics.application.objects.TrackedObject;
  * LiDarService is responsible for processing data from the LiDAR sensor and
  * sending TrackedObjectsEvents to the FusionSLAM service.
  * 
- * This service interacts with the LiDarWorkerTracker object to retrieve and process
+ * This service interacts with the LiDarWorkerTracker object to retrieve and
+ * process
  * cloud point data and updates the system's StatisticalFolder upon sending its
  * observations.
  */
 public class LiDarService extends MicroService {
     private int currentTick = 0;
-    private LiDarWorkerTracker lidarWT; 
+    private LiDarWorkerTracker lidarWT;
     private ConcurrentLinkedQueue<Future<Boolean>> lidarFutures;
     private ConcurrentLinkedQueue<TrackedObjectsEvent> eventsToSend;
-
 
     /**
      * Constructor for LiDarService.
      *
-     * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
+     * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service
+     *                           will use to process data.
      */
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker, String lidarDBPath) {
-        super("LiDarService: "+ LiDarWorkerTracker.getId());
+        super("LiDarService: " + LiDarWorkerTracker.getId());
         this.lidarWT = LiDarWorkerTracker;
         this.lidarWT.setLidarDataBase(LiDarDataBase.getInstance(lidarDBPath));
         this.lidarWT.initializeFinishTime();
@@ -60,12 +61,6 @@ public class LiDarService extends MicroService {
             if(lidarWT.isFinish(currentTick)){
                 terminate();
             }
-            //MAYBE SHOULD BE MOVED to the handleDetectedEvent according to ahmed's answer !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            else if(lidarWT.isError(currentTick)){
-                sendBroadcast(new CrashedBroadcast(this.currentTick));
-                lidarWT.handleCrash();
-                Thread.currentThread().interrupt();
-            }
             else if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
                 TrackedObjectsEvent event = eventsToSend.poll();
                 lidarFutures.add(sendEvent(event));
@@ -87,16 +82,25 @@ public class LiDarService extends MicroService {
         subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent detectObject)->{
             StampedDetectedObjects stampedObjects = detectObject.getDetectedObjects();
             int detectionTime = stampedObjects.getTime();
-            ConcurrentLinkedQueue<TrackedObject> trackedObjects = lidarWT.handleDetectObject(detectObject, detectionTime);
-
-            //maybe check if relevant to send and send the event right away
-            if(detectionTime + lidarWT.getFrequency()<=currentTick){
-                sendEvent(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+            //MAYBE SHOULD BE MOVED to the handleDetectedEvent according to ahmed's answer !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if(lidarWT.isError(detectionTime)){
+                sendBroadcast(new CrashedBroadcast(this.currentTick));
+                lidarWT.handleCrash();
+                Thread.currentThread().interrupt();
+                System.out.println(getName()+" INTERRUPT");
             }
             else{
-                eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+                ConcurrentLinkedQueue<TrackedObject> trackedObjects = lidarWT.handleDetectObject(detectObject, detectionTime);
+
+                //maybe check if relevant to send and send the event right away
+                if(detectionTime + lidarWT.getFrequency()<=currentTick){
+                    sendEvent(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+                }
+                else{
+                    eventsToSend.add(new TrackedObjectsEvent(trackedObjects, detectionTime + lidarWT.getFrequency()));
+                }
+                complete(detectObject, true);
             }
-            complete(detectObject, true);
         });   
     }
 
