@@ -1,5 +1,7 @@
 package bgu.spl.mics.application;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
@@ -31,12 +33,15 @@ public class JsonConfigHandler {
         public String getCamera_datas_path() {
             return camera_datas_path;
         }
+
+        public void setCamera_datas_path(String camera_datas_path) {
+            this.camera_datas_path = camera_datas_path;
+        }
     }
 
     public static class LidarWorkers {
         private List<LiDarWorkerTracker> LidarConfigurations;
         private String lidars_data_path;
-
 
         public List<LiDarWorkerTracker> getLidarsObjects() {
             return LidarConfigurations;
@@ -44,6 +49,10 @@ public class JsonConfigHandler {
 
         public String getLidars_data_path() {
             return lidars_data_path;
+        }
+
+        public void setLidars_data_path(String lidars_data_path) {
+            this.lidars_data_path = lidars_data_path;
         }
     }
 
@@ -67,6 +76,11 @@ public class JsonConfigHandler {
             return poseJsonFile;
         }
 
+        public void setPoseJsonFile(String poseJsonFile) {
+            this.poseJsonFile = poseJsonFile;
+        }
+
+
         public int getTickTime() {
             return TickTime;
         }
@@ -74,6 +88,26 @@ public class JsonConfigHandler {
         public int getDuration() {
             return Duration;
         }
+
+        public void setParentPaths(String configPath){
+            //find parent path
+             Path configFilePath = Paths.get(configPath);
+             Path parentPath = configFilePath.getParent();
+
+             //convert relative to absolute path 
+             Path absolutePoses = parentPath.resolve(this.getPoseJsonFile()).normalize();
+             Path absoluteCamera = parentPath.resolve(this.Cameras.getCamera_datas_path()).normalize();
+             Path absoluteLidar = parentPath.resolve(this.LiDarWorkers.getLidars_data_path()).normalize();
+
+             //reassign corrected paths
+             this.setPoseJsonFile(absolutePoses.toString());
+             this.Cameras.setCamera_datas_path(absoluteCamera.toString());
+             this.LiDarWorkers.setLidars_data_path(absoluteLidar.toString());
+             System.out.println("PATH: " + this.getPoseJsonFile());
+             System.out.println("PATH: " + this.Cameras.getCamera_datas_path());
+             System.out.println("PATH: " + this.LiDarWorkers.getLidars_data_path());
+        }
+
     }
 
     public static Vector<MicroService> buildServicesConfig(RootObject rootObject,

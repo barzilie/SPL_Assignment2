@@ -10,8 +10,8 @@
             "request": "launch",
             "mainClass": "bgu.spl.mics.application.GurionRockRunner",
             "projectName": "spl225ass2",
-            "args": "./configuration_file.json",
-            "cwd": "/workspaces/SPL_Assignment2/example_input_2 copy"
+            "args": "/workspaces/SPL_Assignment2/'example_input_2 copy'/configuration_file.json",
+            "cwd": "/workspaces/SPL_Assignment2/"
         },
         {
             "type": "java",

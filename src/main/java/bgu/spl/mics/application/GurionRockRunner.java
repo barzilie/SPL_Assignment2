@@ -36,11 +36,13 @@ public class GurionRockRunner {
      */
     public static void main(String[] args) {
         System.out.println("Hello World!");
-        try (FileReader reader = new FileReader(args[0])) {
+        String configFile = args[0];
+        try (FileReader reader = new FileReader(configFile)) {
             Gson gson = new Gson();
 
             // Parse the JSON
             RootObject rootObject = gson.fromJson(reader, RootObject.class);
+            rootObject.setParentPaths(configFile);
             //changed jsonHandler for new camera configurations scheme
             HashMap<String, Vector<StampedDetectedObjects>> cameraMap = JsonCameraDataHandler.cameraDataHandler(rootObject.getCameras().getCamera_datas_path());
             ExecutorService executor = Executors.newCachedThreadPool();
