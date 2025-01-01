@@ -60,7 +60,10 @@ public class LiDarService extends MicroService {
             currentTick++; 
             if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
                 TrackedObjectsEvent event = eventsToSend.poll();
-                lidarFutures.add(sendEvent(event));
+                Future<Boolean> f = sendEvent(event);
+                if(f!=null){
+                    lidarFutures.add(f);
+                }
             }
             else if(eventsToSend.isEmpty() && cameraFinish){
                 lidarWT.setStatus(STATUS.DOWN);

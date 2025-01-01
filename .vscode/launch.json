@@ -17,7 +17,9 @@
             "type": "java",
             "name": "Launch Java Program",
             "request": "launch",
-            "mainClass": ""
+            "mainClass": "",
+            "args": "/workspaces/SPL_Assignment2/'example_input_2'/configuration_file.json",
+
         },
         {
             "type": "java",
@@ -27,7 +29,7 @@
         },
         {
             "type": "java",
-            "name": "GurionRockRunner",
+            "name": "GurionRockRunner2",
             "request": "launch",
             "mainClass": "bgu.spl.mics.application.GurionRockRunner",
             "projectName": "spl225ass2",
