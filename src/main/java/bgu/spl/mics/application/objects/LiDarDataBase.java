@@ -36,13 +36,11 @@ public class LiDarDataBase {
         return cloudPoints;
     }
 
-    public StampedCloudPoints retrieveCloudPoint(int timeLimit, String id){
+    public StampedCloudPoints retrieveCloudPoint(int detectionTime, String id){
         StampedCloudPoints output = null;
         for(StampedCloudPoints stampedCP: this.cloudPoints){
-            if(stampedCP.getId().equals(id) && stampedCP.getTime() <= timeLimit){
-                if(output == null || (output != null && stampedCP.getTime() > output.getTime())){
-                    output = stampedCP;
-                } 
+            if(stampedCP.getId().equals(id) && stampedCP.getTime() == detectionTime){
+                output = stampedCP;
             }
         }
         return output;

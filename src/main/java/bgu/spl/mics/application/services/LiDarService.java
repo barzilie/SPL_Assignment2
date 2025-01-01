@@ -26,6 +26,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
  */
 public class LiDarService extends MicroService {
     private int currentTick = 0;
+    private boolean cameraFinish = false;
     private LiDarWorkerTracker lidarWT;
     private ConcurrentLinkedQueue<Future<Boolean>> lidarFutures;
     private ConcurrentLinkedQueue<TrackedObjectsEvent> eventsToSend;
@@ -40,7 +41,6 @@ public class LiDarService extends MicroService {
         super("LiDarService: " + LiDarWorkerTracker.getId());
         this.lidarWT = LiDarWorkerTracker;
         this.lidarWT.setLidarDataBase(LiDarDataBase.getInstance(lidarDBPath));
-        this.lidarWT.initializeFinishTime();
         this.lidarWT.checkErrorId();
         this.lidarFutures = new ConcurrentLinkedQueue<>();
         this.eventsToSend = new ConcurrentLinkedQueue<TrackedObjectsEvent>();
@@ -58,12 +58,16 @@ public class LiDarService extends MicroService {
 
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick)->{
             currentTick++; 
-            if(lidarWT.isFinish(currentTick)){
-                terminate();
-            }
-            else if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
+            if(!eventsToSend.isEmpty() && currentTick == eventsToSend.peek().getTimeToSend()){
                 TrackedObjectsEvent event = eventsToSend.poll();
-                lidarFutures.add(sendEvent(event));
+                Future<Boolean> f = sendEvent(event);
+                if(f!=null){
+                    lidarFutures.add(f);
+                }
+            }
+            else if(eventsToSend.isEmpty() && cameraFinish){
+                lidarWT.setStatus(STATUS.DOWN);
+                terminate();
             }
         }  );
 
@@ -71,6 +75,9 @@ public class LiDarService extends MicroService {
             if(terminated.getSenderName().equals("TimeService")){
                 lidarWT.setStatus(STATUS.DOWN);
                 terminate();
+            }
+            if(terminated.getSenderName().equals("CameraService")){
+                cameraFinish = true;
             }
         });
 
@@ -86,8 +93,8 @@ public class LiDarService extends MicroService {
             if(lidarWT.isError(detectionTime)){
                 sendBroadcast(new CrashedBroadcast(this.currentTick));
                 lidarWT.handleCrash();
-                Thread.currentThread().interrupt();
                 System.out.println(getName()+" INTERRUPT");
+                Thread.currentThread().interrupt();
             }
             else{
                 ConcurrentLinkedQueue<TrackedObject> trackedObjects = lidarWT.handleDetectObject(detectObject, detectionTime);

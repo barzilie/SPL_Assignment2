@@ -15,7 +15,6 @@ public class LiDarWorkerTracker {
     private int id;
     private int frequency;
     private STATUS status;
-    private int finishTime = 0;
     private int errorTime = -1;
     private LiDarDataBase lidarDataBase;
     private ConcurrentLinkedQueue<TrackedObject> lastTrackedObjects;
@@ -67,16 +66,6 @@ public class LiDarWorkerTracker {
         this.lidarDataBase = lidarDataBase;
     }
 
-    public void initializeFinishTime(){
-        int finish=0;
-        for(StampedCloudPoints s: lidarDataBase.getCloudPoints()){
-            if(s.getTime()>finish){
-                finish = s.getTime();
-            }
-        }
-        this.finishTime = finish;
-    }
-
     public void checkErrorId(){
         ConcurrentLinkedQueue<StampedCloudPoints> DB = lidarDataBase.getCloudPoints();
         for(StampedCloudPoints scp: DB){
@@ -85,15 +74,6 @@ public class LiDarWorkerTracker {
             break;
            }
         }
-    }
-
-    public boolean isFinish(int currentTick){
-        if(finishTime<currentTick){
-            System.out.println("LIDAR TERMINATED IN: " + currentTick);
-            setStatus(STATUS.DOWN);
-            return true;
-        }
-        return false;
     }
 
     public boolean isError(int currentTick){
@@ -114,7 +94,7 @@ public class LiDarWorkerTracker {
         for(DetectedObject object: stampedObjects.getDetectedObjectsList()){
             String objectId = object.getId();
             String ObjectDescription = object.getDescription();
-            //THE actual check for early cloudpoints (bin 8 -> 9) is in retrieve function
+            //THE actual check for cloudpoints is in retrieve function
             StampedCloudPoints stampedCP = this.lidarDataBase.retrieveCloudPoint(detectionTime, objectId);
             Vector<CloudPoint> coordinates = new Vector<CloudPoint>();
             for(List<Double> listCP: stampedCP.getCloudPoints()){

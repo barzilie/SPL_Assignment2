@@ -16,11 +16,13 @@ public class FusionSlam {
     private Vector<LandMark> landmarks;
     private Vector<Pose> poses;
     private StatisticalFolder statisticalFolder;
+    private ConcurrentLinkedQueue<TrackedObjectsEvent> toHandleNextTick;
     
     private FusionSlam(){
         this.landmarks = new Vector<>();
         this.poses = new Vector<>();
         this.statisticalFolder = StatisticalFolder.getInstance();
+        this.toHandleNextTick = new ConcurrentLinkedQueue<>();
     }
     // Singleton instance holder
     private static class FusionSlamHolder {
@@ -76,20 +78,25 @@ public class FusionSlam {
 
     //public for testing 
     public void handleTrackedObject(TrackedObjectsEvent trackedObjects){
-        for(TrackedObject object: trackedObjects.getTrackedObjects()){
-            ConcurrentLinkedQueue<CloudPoint> ObjectGlobalCoordinates = convertToGlobal(object);
-            LandMark toRefine = retrieveLandmark(object.getId());
-            if(toRefine == null){
-                LandMark toAdd = new LandMark(object.getId(),object.getDescription(), ObjectGlobalCoordinates);
-                addLandMark(toAdd);
-                statisticalFolder.increaseNumLandMarks();
-                statisticalFolder.addLandMarks(toAdd);
-            }
-            else{
-                 toRefine.setCoordinates(refineCoordinates(toRefine.getCoordinates(), ObjectGlobalCoordinates));
-            }
+        if(!getPoseSize(trackedObjects)){
+            this.toHandleNextTick.add(trackedObjects);
         }
-        
+        else{
+            for(TrackedObject object: trackedObjects.getTrackedObjects()){
+                ConcurrentLinkedQueue<CloudPoint> ObjectGlobalCoordinates = convertToGlobal(object);
+                LandMark toRefine = retrieveLandmark(object.getId());
+                if(toRefine == null){
+                    LandMark toAdd = new LandMark(object.getId(),object.getDescription(), ObjectGlobalCoordinates);
+                    addLandMark(toAdd);
+                    statisticalFolder.increaseNumLandMarks();
+                    statisticalFolder.addLandMarks(toAdd);
+                }
+                else{
+                     toRefine.setCoordinates(refineCoordinates(toRefine.getCoordinates(), ObjectGlobalCoordinates));
+                }
+            }
+
+        }    
     }
 
     public void updateStatisticsBeforeCrash(CrashedBroadcast crashed){
@@ -100,6 +107,16 @@ public class FusionSlam {
 
     public void setTerminateClock(){
         statisticalFolder.setTerminateClock();
+    }
+
+    public boolean getPoseSize(TrackedObjectsEvent toe){
+        return this.poses.size()>=toe.getTrackedObjects().peek().getTime()-1;
+    }
+
+    public void handlePastTrackedObjects() {
+        while(!this.toHandleNextTick.isEmpty() && getPoseSize(this.toHandleNextTick.peek())){
+            handleTrackedObject(toHandleNextTick.poll());
+        }
     }
     
 

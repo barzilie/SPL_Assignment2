@@ -43,6 +43,7 @@ public class FusionSlamService extends MicroService {
 
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick)->{ 
             currentTick++;
+            this.fusionSlam.handlePastTrackedObjects();
         });
 
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated)->{
