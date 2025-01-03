@@ -59,11 +59,12 @@ public class MessageBusImplTest {
     @Test
     public void testSubscribeEvent() {
         ConcurrentLinkedQueue<MicroService> originPoseSubscribers = messageBus.getEventSubscribers().get(PoseEvent.class);
+        int expectedSize = originPoseSubscribers.size() +1;
         System.out.println("entered testSubscribeEvent");
         messageBus.register(fusionSlamService);
         messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
         assertTrue(messageBus.getEventSubscribers().get(PoseEvent.class).contains(fusionSlamService));
-        assertEquals(messageBus.getEventSubscribers().get(PoseEvent.class).size(), originPoseSubscribers.size()+1);
+        assertEquals(expectedSize, messageBus.getEventSubscribers().get(PoseEvent.class).size());
         messageBus.unregister(fusionSlamService);
     }
 
@@ -77,12 +78,15 @@ public class MessageBusImplTest {
     public void testSubscribeBroadcast() {
 
         ConcurrentLinkedQueue<MicroService> originTickSubscribers = messageBus.getBroadcastSubscribers().get(TickBroadcast.class);
+        int expectedSize = originTickSubscribers.size() +1;
+        System.out.println("origin tick subscribe size: "+ originTickSubscribers);
         System.out.println("entered testSubscribeBroadcast");
 
         messageBus.register(cameraService1);
         messageBus.subscribeBroadcast(TickBroadcast.class, cameraService1);
+
         assertTrue(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).contains(cameraService1));
-        assertEquals(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).size(), originTickSubscribers.size()+1);
+        assertEquals(expectedSize, messageBus.getBroadcastSubscribers().get(TickBroadcast.class).size());
         messageBus.unregister(cameraService1);
     }
 
