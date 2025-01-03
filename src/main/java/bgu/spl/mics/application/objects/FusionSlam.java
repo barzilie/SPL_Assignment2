@@ -58,6 +58,10 @@ public class FusionSlam {
             CloudPoint newCP = itNew.next();
             refinedCoordinates.add(new CloudPoint((oldCP.getX()+newCP.getX())/2, (oldCP.getY()+newCP.getY())/2));
         }
+        while(itNew.hasNext()){
+            CloudPoint newCP = itNew.next();
+            refinedCoordinates.add(new CloudPoint(newCP.getX(),newCP.getY()));
+        }
         return refinedCoordinates;
     }
 
