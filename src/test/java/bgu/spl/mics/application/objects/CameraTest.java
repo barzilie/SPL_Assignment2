@@ -38,11 +38,30 @@ class CameraTest {
         camera.setDetectedObjectsList(detectedObjectsList);
     }
 
+    // Test the method on valid data
+
+    /* Pre-condition:
+    1. The camera is initialized with a list of StampedDetectedObjects, where each entry matches a tick.
+    2. The list does not contain any "error" objects. */ 
+
+    /* Post-condition:
+    1. The return value is not null.
+    2. The returned StampedDetectedObjects object should match the provided currentTick and contain the correct detected objects.
+    3. The list of detected objects for the current tick should be removed from the camera's detectedObjectsList. */ 
+
+    // Invariant: The camera's detected objects list should remain consistent for all ticks except the one being processed. 
+
+
+
     @Test
     void testPrepareDataValidInput() {
+
         int currentTick = 1;
 
-        // Run the method on valid data
+        //original DetectedObjectsList to compare
+        Vector<StampedDetectedObjects> originDetectedObjectsList = camera.getDetectedObjectsList();
+        originDetectedObjectsList.remove(camera.getDetectedObjectsAtTime(1));
+
         StampedDetectedObjects result = camera.prepareData(currentTick);
 
         ConcurrentLinkedQueue<DetectedObject> expectedObjects = new ConcurrentLinkedQueue<>();
@@ -64,32 +83,71 @@ class CameraTest {
             assertEquals(d1.getDescription(), d2.getDescription());           
         }
 
-        // Ensure the detected objects list is updated
+        // Ensure invariant
         assertNull(camera.getDetectedObjectsAtTime(1), "Detected objects at currentTick should be removed");
+        assertEquals(camera.getDetectedObjectsList().size(), originDetectedObjectsList.size());
     }
+
+
+    // Test the method on data with an error object
+
+    /* Pre-condition:
+    1. The camera is initialized with a list of StampedDetectedObjects, where each entry matches a tick.
+    2. The list contains "error" id object at the tested tick. */ 
+
+    /* Post-condition:
+    1. The method return value is null.
+    2. The camera's status in ERROR */ 
+
+    // Invariant: The camera's detected objects list should remain unchanged 
+
 
     @Test
     void testPrepareDataWithError() {
+
+        Vector<StampedDetectedObjects> originDetectedObjectsList = camera.getDetectedObjectsList();
+
         int currentTick = 2;
 
-        // Run the method on data with an error object
         StampedDetectedObjects result = camera.prepareData(currentTick);
 
         // Verify the output
         assertNull(result, "prepareData should return null when error objects are present");
         assertEquals(STATUS.ERROR, camera.getStatus(), "Camera status should be set to ERROR when error objects are detected");
+
+        // Ensure invariant
+        assertEquals(camera.getDetectedObjectsList().size(), originDetectedObjectsList.size());
     }
+
+
+    // Test the method on a tick with no data
+
+    /* Pre-condition:
+    1. The camera is initialized with a list of StampedDetectedObjects with no matching data for the given tick.
+
+    /* Post-condition:
+    1. The method will not return null
+    2. The method returns a new default StampedDetectedObjects, with an empty detectedObjects list, and time = 0. */ 
+
+    // Invariant: The camera's detected objects list should remain unchanged 
+
 
     @Test
     void testPrepareDataNoData() {
+
+        Vector<StampedDetectedObjects> originDetectedObjectsList = camera.getDetectedObjectsList();
+
         int currentTick = 3;
 
-        // Run the method on a tick with no data
         StampedDetectedObjects result = camera.prepareData(currentTick);
 
         // Verify the output
         assertNotNull(result, "prepareData should not return null for missing data");
         assertEquals(0, result.getTime(), "The returned data should have a default time of 0 for missing data");
         assertTrue(result.getDetectedObjectsList().isEmpty(), "The returned data should have an empty detected objects list");
+
+        
+        // Ensure invariant
+        assertEquals(camera.getDetectedObjectsList().size(), originDetectedObjectsList.size());
     }
 }

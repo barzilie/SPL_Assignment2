@@ -48,6 +48,7 @@ public class Camera {
     public void addDetectedObjects(StampedDetectedObjects stampedDetectedObjects){
         detectedObjectsList.add(stampedDetectedObjects);
     }
+
     public Vector<StampedDetectedObjects> getDetectedObjectsList(){
         return this.detectedObjectsList;
     }

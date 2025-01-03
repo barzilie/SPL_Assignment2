@@ -118,6 +118,9 @@ public class FusionSlam {
             handleTrackedObject(toHandleNextTick.poll());
         }
     }
-    
+
+    public Vector<LandMark> getLandmarks() {
+        return landmarks;
+    }
 
 }

@@ -115,11 +115,13 @@ public class JsonConfigHandler {
         Vector<MicroService> microServices = new Vector<>();
         FusionSlamService fusionSlam = new FusionSlamService(FusionSlam.getInstance());
         microServices.add(fusionSlam);
+        int numOfCameras = 0;
         if (rootObject != null && rootObject.getCameras() != null && rootObject.getCameras().getListCameras() != null) {
             for (Camera camera : rootObject.getCameras().getListCameras()) {
                 camera.setDetectedObjectsList(cameraMap.get(camera.getCameraKey()));
                 camera.setStatus(STATUS.UP);
                 fusionSlam.incrementNumOfSensors();
+                numOfCameras++;
                 microServices.add(new CameraService(camera));
             }
         } else {
@@ -129,6 +131,7 @@ public class JsonConfigHandler {
             System.out.println("LIDAR IS NOT NULL IN ROOT");
             for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
                 lidar.setStatus(STATUS.UP);
+                lidar.setNumOfCameras(numOfCameras);
                 fusionSlam.incrementNumOfSensors();
                 System.out.println("LIDAR LOOP ENTERED");
                 microServices.add(new LiDarService(lidar, rootObject.getLidars().getLidars_data_path()));

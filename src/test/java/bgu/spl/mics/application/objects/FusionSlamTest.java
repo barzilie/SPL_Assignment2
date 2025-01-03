@@ -27,9 +27,22 @@ class FusionSlamTest {
         fusionSlam.addPose(new Pose(4, 1, 100, 2));
     }
 
+
+    /* Pre-condition:
+    1. The next event to handle is an object that has not yet recorded as landmarks in the system. */
+
+    /* Post-condition:
+    1. A new landmark is created and added to landmarks, with global coordinates transformed based on the robot's pose.
+    2. The new landmark is not null.
+    2. The new landmark's ID, description and coordinates match the tracked object. */
+
+    // Invariant: No other landmarks or robot states should be modified. 
+
+
     @Test
     public void testHandleTrackedObject_newLandmark() {
         //initialization
+        Vector<LandMark> originLandmarks = fusionSlam.getLandmarks();
         Vector<CloudPoint> coordinatesB = new Vector<>();
         coordinatesB.add(new CloudPoint(0, 1));
         coordinatesB.add(new CloudPoint(10, 4));  
@@ -42,6 +55,7 @@ class FusionSlamTest {
         TrackedObject toC = new TrackedObject("table_2", 1, "table", coordinatesC);
         trackedObjects.add(toC);
         this.trackedObjectEvent = new TrackedObjectsEvent(trackedObjects, 1);
+
         fusionSlam.handleTrackedObject(trackedObjectEvent);
 
         //expected First Object result calculation:
@@ -60,6 +74,7 @@ class FusionSlamTest {
 
 
         //first Object Testing
+
         LandMark retrievedLandmarkB = fusionSlam.retrieveLandmark("Bed_2");
         assertNotNull(retrievedLandmarkB);
         assertEquals(toB.getId(), retrievedLandmarkB.getId());
@@ -71,7 +86,7 @@ class FusionSlamTest {
             CloudPoint lamdMarkCP = landMarkIteratorB.next();
             assertEquals(resultCP.getX(), lamdMarkCP.getX());
             assertEquals(resultCP.getY(), lamdMarkCP.getY());
-        }
+        }        
 
         //expected Second Object result calculation:
         ConcurrentLinkedQueue<CloudPoint> globalCoordinatesC = new ConcurrentLinkedQueue<CloudPoint>();
@@ -98,14 +113,25 @@ class FusionSlamTest {
             CloudPoint resultCP = resultCoordinatesIteratorC.next();
             CloudPoint lamdMarkCP = landMarkIteratorC.next();
             assertEquals(resultCP.getX(), lamdMarkCP.getX());
-            assertEquals(resultCP.getY(), lamdMarkCP.getY());        }
+            assertEquals(resultCP.getY(), lamdMarkCP.getY());        
+        }
 
-
+        //Ensure invariant
+        assertEquals(originLandmarks.size()+2, fusionSlam.getLandmarks().size());
     }
+
+    /* Pre-condition:
+    1. A landmark with the same ID as the tracked object already exists in the system. */
+
+    /* Post-condition:
+    1. The existing landmark is updated with the refined (average) coordinates.
+    2. The ID and description of the landmark remain unchanged. */
+
+    // Invariant: No other landmarks or robot states should be modified. 
+
 
     @Test
     public void testHandleTrackedObject_UpdateExistingLandmark() {
-
         //initialization
         ConcurrentLinkedQueue<CloudPoint> coordinates = new ConcurrentLinkedQueue<>();
         coordinates.add(new CloudPoint(1, 2));
@@ -121,6 +147,8 @@ class FusionSlamTest {
         TrackedObject toA = new TrackedObject("refrigerator_1", 2, "makes cold", coordinatesA);
         trackedObjects.add(toA);
         this.trackedObjectEvent = new TrackedObjectsEvent(trackedObjects, 1);
+
+        Vector<LandMark> originLandmarks = fusionSlam.getLandmarks();
 
         //expected Object result calculation:
         ConcurrentLinkedQueue<CloudPoint> globalCoordinatesA = new ConcurrentLinkedQueue<CloudPoint>();
@@ -147,7 +175,7 @@ class FusionSlamTest {
         }
 
 
-        //function run
+        //method run
         fusionSlam.handleTrackedObject(trackedObjectEvent);
         retrievedLandmarkA = fusionSlam.retrieveLandmark("refrigerator_1");
         
@@ -164,5 +192,8 @@ class FusionSlamTest {
             assertEquals(resultCP.getX(), lamdMarkCP.getX());
             assertEquals(resultCP.getY(), lamdMarkCP.getY());            
         }
+
+        //Ensure invariant
+        assertEquals(originLandmarks.size(), fusionSlam.getLandmarks().size());
     }
 }

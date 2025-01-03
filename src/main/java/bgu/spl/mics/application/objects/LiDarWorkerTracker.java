@@ -16,6 +16,7 @@ public class LiDarWorkerTracker {
     private int frequency;
     private STATUS status;
     private int errorTime = -1;
+    private int numOfCameras;
     private LiDarDataBase lidarDataBase;
     private ConcurrentLinkedQueue<TrackedObject> lastTrackedObjects;
 
@@ -51,6 +52,18 @@ public class LiDarWorkerTracker {
 
     public void setLastTrackedObjects(ConcurrentLinkedQueue<TrackedObject> trackedObjects){
         this.lastTrackedObjects = trackedObjects;
+    }
+
+    public void setNumOfCameras(int numOfCameras) {
+        this.numOfCameras = numOfCameras;
+    }
+
+    public void decreaseNumOfCameras() {
+        this.numOfCameras = numOfCameras-1;
+    }
+
+    public int getNumOfCameras() {
+        return numOfCameras;
     }
 
     public String toString(){

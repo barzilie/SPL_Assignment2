@@ -77,7 +77,10 @@ public class LiDarService extends MicroService {
                 terminate();
             }
             if(terminated.getSenderName().equals("CameraService")){
-                cameraFinish = true;
+                lidarWT.decreaseNumOfCameras();
+                if(lidarWT.getNumOfCameras() == 0){
+                    cameraFinish = true;
+                }  
             }
         });
 

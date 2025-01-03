@@ -161,7 +161,7 @@ public class MessageBusImpl implements MessageBus {
 
 	//getters for testings 
 
-	public Map<MicroService, BlockingQueue<Message>> getMicroServiceQueues(){
+	public ConcurrentHashMap<MicroService, BlockingQueue<Message>> getMicroServiceQueues(){
 		return this.microServiceQueues;
 	}
 	

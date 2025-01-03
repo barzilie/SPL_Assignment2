@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -48,25 +50,47 @@ public class MessageBusImplTest {
 
     }
 
+    /*
+     * Pre-condition: The service is registered with the message bus.
+     * Post-condition: The service is subscribed to event.
+     * Invariant: Other subscriptions remain consistent.
+     */
+
     @Test
     public void testSubscribeEvent() {
+        ConcurrentLinkedQueue<MicroService> originPoseSubscribers = messageBus.getEventSubscribers().get(PoseEvent.class);
         System.out.println("entered testSubscribeEvent");
         messageBus.register(fusionSlamService);
         messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
         assertTrue(messageBus.getEventSubscribers().get(PoseEvent.class).contains(fusionSlamService));
+        assertEquals(messageBus.getEventSubscribers().get(PoseEvent.class).size(), originPoseSubscribers.size()+1);
         messageBus.unregister(fusionSlamService);
     }
 
+    /*
+     * Pre-condition: The service is registered with the message bus.
+     * Post-condition: The service is subscribed to the broadcast.
+     * Invariant: Other subscriptions remain consistent.
+     */
+
     @Test
     public void testSubscribeBroadcast() {
+
+        ConcurrentLinkedQueue<MicroService> originTickSubscribers = messageBus.getBroadcastSubscribers().get(TickBroadcast.class);
         System.out.println("entered testSubscribeBroadcast");
 
         messageBus.register(cameraService1);
         messageBus.subscribeBroadcast(TickBroadcast.class, cameraService1);
         assertTrue(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).contains(cameraService1));
+        assertEquals(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).size(), originTickSubscribers.size()+1);
         messageBus.unregister(cameraService1);
     }
 
+    /*
+     * Pre-condition: The services are registered and subscribed to the broadcast.
+     * Post-condition: The broadcast is delivered to both services.
+     * Invariant: all broadcast messages are delivered to the correct subscribers in FIFO order.
+     */
     @Test
     public void testSendBroadcast() {
         System.out.println("entered testSendBroadcast");
@@ -84,8 +108,13 @@ public class MessageBusImplTest {
         }
         messageBus.unregister(cameraService1);
         messageBus.unregister(fusionSlamService);
-
     }
+
+    /*
+     * Pre-condition: The service is registered and subscribed to the event.
+     * Post-condition: The event is sent and the future object is not null.
+     * Invariant: all events sent have a corresponding non-null future object if a subscriber exists.
+     */
 
     @Test
     public void testSendEvent() {
@@ -93,7 +122,6 @@ public class MessageBusImplTest {
 
         messageBus.register(fusionSlamService);
         messageBus.subscribeEvent(PoseEvent.class, fusionSlamService);
-        //messageBus.sendEvent(poseEvent);
         Future<Boolean> future = messageBus.sendEvent(poseEvent);
         assertNotNull(future);
         System.out.println("future is not null");
@@ -105,6 +133,12 @@ public class MessageBusImplTest {
         System.out.println("EXITED");
         messageBus.unregister(fusionSlamService);
     }
+
+    /*
+     * Pre-condition: The service is registered and subscribed to the event, and the event is sent.
+     * Post-condition: The future object is completed with the correct value (and is not null).
+     * Invariant: The future object state is updated correctly when complete is called.
+     */
 
     @Test
     public void testComplete() {
@@ -120,9 +154,19 @@ public class MessageBusImplTest {
         messageBus.unregister(fusionSlamService);
     }
 
+    /*
+     * Pre-condition Register: The service is not registered.
+     * Post-condition Register: The service is registered and appears in microServicesQueues.
+     * Pre-condition Unregister: The service is registered.
+     * Post-condition: The service is unregistered and its subscriptions are removed.
+     * Invariant: No other services are affected during registration and unregistration.
+     */
+
     @Test
     public void testRegisterAndUnregister() {
-        System.out.println("entered testSubscribeEvent");
+        int microSeviceQueuesSize = messageBus.getMicroServiceQueues().size();
+        int eventSubscribersSize = messageBus.getEventSubscribers().size();
+        int broadcastSubscribersSize = messageBus.getBroadcastSubscribers().size();
 
         messageBus.register(cameraService1);
         messageBus.subscribeEvent(PoseEvent.class, cameraService1);
@@ -136,9 +180,18 @@ public class MessageBusImplTest {
         assertFalse(messageBus.getMicroServiceQueues().containsKey(cameraService1));
         assertFalse(messageBus.getEventSubscribers().get(PoseEvent.class).contains(cameraService1));
         assertFalse(messageBus.getBroadcastSubscribers().get(CrashedBroadcast.class).contains(cameraService1));
+
+        //Ensure invariant
+        assertEquals(microSeviceQueuesSize, messageBus.getMicroServiceQueues().size());
+        assertEquals(eventSubscribersSize, messageBus.getEventSubscribers().size());
+        assertEquals(broadcastSubscribersSize, messageBus.getBroadcastSubscribers().size());
     }
 
-
+    /*
+     * Pre-condition: The service is registered and subscribed to the event, and the event is sent.
+     * Post-condition: The service successfully retrieves the sent event message.
+     * Invariant: awaitMessage always retrieves the next message in the queue in FIFO order.
+     */
     @Test
     public void testAwaitMessage() {
         System.out.println("entered testAwaitMessage");
@@ -156,6 +209,11 @@ public class MessageBusImplTest {
         messageBus.unregister(cameraService1);
     }
 
+    /*
+     * Pre-condition: The services are registered and subscribed to the event.
+     * Post-condition: Events are distributed to subscribers in a round-robin manner.
+     * Invariant: Round-robin delivery ensures even distribution among all subscribers to an event type.
+     */
     @Test
     public void testRoundRobin() {
         System.out.println("entered testRoundRobin");
