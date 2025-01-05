@@ -52,8 +52,11 @@ public class MessageBusImplTest {
 
     /*
      * Pre-condition: The service is registered with the message bus.
+     * messageBus.microServiceQueues.contains(this) == true
      * Post-condition: The service is subscribed to event.
+     * eventSubscribers.contains(this) == true
      * Invariant: Other subscriptions remain consistent.
+     * @pre(eventSubscribers.get(event)) == eventSubscribers.get(event).remove(this)
      */
 
     @Test
@@ -69,8 +72,11 @@ public class MessageBusImplTest {
 
     /*
      * Pre-condition: The service is registered with the message bus.
+     * messageBus.microServiceQueues.contains(this) == true
      * Post-condition: The service is subscribed to the broadcast.
+     *broadcastSubscribers.contains(this) == true
      * Invariant: Other subscriptions remain consistent.
+     * @pre(broadcastSubscribers.get(event)) == broadcastSubscribers.get(event).remove(this)
      */
 
     @Test
@@ -88,8 +94,11 @@ public class MessageBusImplTest {
 
     /*
      * Pre-condition: The services are registered and subscribed to the broadcast.
+     * messageBus.microServiceQueues.contains(this) == true
+     * broadcastSubscribers.contains(this) == true
      * Post-condition: The broadcast is delivered to both services.
-     * Invariant: all broadcast messages are delivered to the correct subscribers in FIFO order.
+     * messageBus.microServiceQueues.get(this).getLast() == Broadcast
+     * Invariant: ?????????????????????????????????????             all broadcast messages are delivered to the correct subscribers in FIFO order.
      */
     @Test
     public void testSendBroadcast() {
@@ -112,8 +121,12 @@ public class MessageBusImplTest {
 
     /*
      * Pre-condition: The service is registered and subscribed to the event.
+     * messageBus.microServiceQueues.contains(this) == true
+     * eventSubscribers.contains(this) == true
      * Post-condition: The event is sent and the future object is not null.
-     * Invariant: all events sent have a corresponding non-null future object if a subscriber exists.
+     * messageBus.microServiceQueues.get(this).contains() == Event
+     * future != null
+     * Invariant: ???????????????????????      all events sent have a corresponding non-null future object if a subscriber exists.
      */
 
     @Test
@@ -136,8 +149,13 @@ public class MessageBusImplTest {
 
     /*
      * Pre-condition: The service is registered and subscribed to the event, and the event is sent.
+     * messageBus.microServiceQueues.contains(this)
+     * eventSubscribers.contains(this)
+     * messageBus.microServiceQueues.get(this).contains() == Event
      * Post-condition: The future object is completed with the correct value (and is not null).
-     * Invariant: The future object state is updated correctly when complete is called.
+     * future.resolved() == true
+     * future.get != null
+     * Invariant: ?????????????????? ?????????       The future object state is updated correctly when complete is called.
      */
 
     @Test
@@ -156,10 +174,19 @@ public class MessageBusImplTest {
 
     /*
      * Pre-condition Register: The service is not registered.
+     * messageBus.microServiceQueues.contains(this) == false
      * Post-condition Register: The service is registered and appears in microServicesQueues.
+     * messageBus.microServiceQueues.contains(this) == true
+     * messageBus.microServiceQueues.size() == @pre(messageBus.microServiceQueues.size())+1
      * Pre-condition Unregister: The service is registered.
+     * messageBus.microServiceQueues.contains(this) == true
      * Post-condition: The service is unregistered and its subscriptions are removed.
+     * messageBus.microServiceQueues.contains(this) == false
+     * messageBus.microServiceQueues.size() == @pre(messageBus.microServiceQueues.size())-1
      * Invariant: No other services are affected during registration and unregistration.
+     * forEach ms != this:
+     * messageBus.microServiceQueues.get(ms) == @pre(messageBus.microServiceQueues.get(ms)
+
      */
 
     @Test

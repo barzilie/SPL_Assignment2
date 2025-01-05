@@ -41,15 +41,26 @@ class CameraTest {
     // Test the method on valid data
 
     /* Pre-condition:
-    1. The camera is initialized with a list of StampedDetectedObjects, where each entry matches a tick.
-    2. The list does not contain any "error" objects. */ 
+    1. The camera is initialized with a list of StampedDetectedObjects, where each entry matches a tick:
+    detectedObjectsList != null
+    detectedObjectsList.get(i).getTime()<detectedObjectsList.get(i+1).getTime()
+    2. The list does not contain any "error" objects:
+    forEach i: detectedObjectsList.get(i).getId() != error
+    */ 
 
     /* Post-condition:
     1. The return value is not null.
+    output != null
     2. The returned StampedDetectedObjects object should match the provided currentTick and contain the correct detected objects.
-    3. The list of detected objects for the current tick should be removed from the camera's detectedObjectsList. */ 
+    output.getTime() = currentTick
+    We mark index i such that:
+    output = detectedObjectsList.get(i), when @pre(detectedObjectsList.get(i).getTime()) = currentTick
+    3. The list of detected objects for the current tick should be removed from the camera's detectedObjectsList.
+    detectedObjectsList.contains(@pre(detectedObjectsList.get(i)) = false
+     */ 
 
-    // Invariant: The camera's detected objects list should remain consistent for all ticks except the one being processed. 
+    // Invariant: The camera's detected objects list should remain consistent for all ticks except the one being processed.
+    // detectedObjectsList = @pre(detectedObjectsList.remove(i))
 
 
 
@@ -92,14 +103,22 @@ class CameraTest {
     // Test the method on data with an error object
 
     /* Pre-condition:
-    1. The camera is initialized with a list of StampedDetectedObjects, where each entry matches a tick.
-    2. The list contains "error" id object at the tested tick. */ 
+    1. The camera is initialized with a list of StampedDetectedObjects, where each entry matches ticks increasingly:
+    detectedObjectsList.get(i).getTime()<detectedObjectsList.get(i+1).getTime()
+    2. The list contains "error" id object at the tested tick:
+    We mark index j such that: detectedObjectsList.get(j).getTime() == currentTick
+    detectedObjectsList.get(j).getId() == "Error" 
+     */ 
 
     /* Post-condition:
     1. The method return value is null.
-    2. The camera's status in ERROR */ 
+    output == null
+    2. The camera's status in ERROR
+    camera.getStatus == ERROR
+     */ 
 
-    // Invariant: The camera's detected objects list should remain unchanged 
+    // Invariant: The camera's detected objects list should remain unchanged :
+    //@pre(detectedObjectsList) == detectedObjectsList
 
 
     @Test
@@ -124,12 +143,17 @@ class CameraTest {
 
     /* Pre-condition:
     1. The camera is initialized with a list of StampedDetectedObjects with no matching data for the given tick.
+    We mark index i such that:
+    detectedObjectsList.get(i).getTime() < detectedObjectsList.get(i).getTime()-1
 
     /* Post-condition:
-    1. The method will not return null
-    2. The method returns a new default StampedDetectedObjects, with an empty detectedObjects list, and time = 0. */ 
-
+    1. The method will not return null:
+    output != null
+    2. The method returns a new default StampedDetectedObjects, with an empty detectedObjects list, and time = 0:
+    output.getDetectedObjectsList().isEmpty == true 
+    */ 
     // Invariant: The camera's detected objects list should remain unchanged 
+    //@pre(detectedObjectsList) == detectedObjectsList
 
 
     @Test

@@ -29,14 +29,23 @@ class FusionSlamTest {
 
 
     /* Pre-condition:
-    1. The next event to handle is an object that has not yet recorded as landmarks in the system. */
+    1. The next event to handle has an object that has not yet recorded as landmarks in the system.
+    fusionSlam.landMark.contains(trackedObjects.getTrackedObjects().get(0).getId()) == false
+    */
 
     /* Post-condition:
     1. A new landmark is created and added to landmarks, with global coordinates transformed based on the robot's pose.
-    2. The new landmark is not null.
-    2. The new landmark's ID, description and coordinates match the tracked object. */
+    landMarks.size() == @pre(landMarks.size())+1
+    landMarks.getLast().getCoordinates == convertToGlobal(trackedObjects.getTrackedObjects().get(0).getCoordinates)
+    2. The new landmark is not null:
+    landMarks.getLast() != null
+    2. The new landmark's ID, description match the tracked object:
+    landMarks.getLast().getId() == trackedObjects.getTrackedObjects().get(0).getId()
+    landMarks.getLast().getDescription() == trackedObjects.getTrackedObjects().get(0).getDescription()
+     */
 
-    // Invariant: No other landmarks or robot states should be modified. 
+    // Invariant: No other landmarks or robot states should be modified.
+    //@pre(landMarks) == landMarks.pop() 
 
 
     @Test
@@ -121,13 +130,23 @@ class FusionSlamTest {
     }
 
     /* Pre-condition:
-    1. A landmark with the same ID as the tracked object already exists in the system. */
+    1. A landmark with the same ID as the tracked object already exists in the system:
+    there is index i such that:
+    fusionSlam.landMark.contains(trackedObjects.getTrackedObjects().get(0).getId()) == true
+     */
 
     /* Post-condition:
-    1. The existing landmark is updated with the refined (average) coordinates.
-    2. The ID and description of the landmark remain unchanged. */
+    1. The existing landmark is updated with the refined (average) coordinates:
+    landMarks.getLast().getCoordinates == refineCoordinates(convertToGlobal(trackedObjects.getTrackedObjects().get(i).getCoordinates))
+    2. The ID and description of the landmark remain unchanged:
+    landMarks.getLast().getId() == trackedObjects.getTrackedObjects().get(0).getId()
+    landMarks.getLast().getDescription() == trackedObjects.getTrackedObjects().get(0).getDescription()
+     */
 
     // Invariant: No other landmarks or robot states should be modified. 
+    //forEach LandMark lm: LandMarks 
+    //if(landMarks.getLast().getId() != trackedObjects.getTrackedObjects().get(0).getId())
+    //@pre(lm) == lm
 
 
     @Test
