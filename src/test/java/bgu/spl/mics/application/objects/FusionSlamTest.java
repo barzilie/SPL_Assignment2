@@ -51,7 +51,7 @@ class FusionSlamTest {
     @Test
     public void testHandleTrackedObject_newLandmark() {
         //initialization
-        Vector<LandMark> originLandmarks = fusionSlam.getLandmarks();
+        int expectedSize = fusionSlam.getLandmarks().size();
         Vector<CloudPoint> coordinatesB = new Vector<>();
         coordinatesB.add(new CloudPoint(0, 1));
         coordinatesB.add(new CloudPoint(10, 4));  
@@ -126,7 +126,7 @@ class FusionSlamTest {
         }
 
         //Ensure invariant
-        assertEquals(originLandmarks.size()+2, fusionSlam.getLandmarks().size());
+        assertEquals(expectedSize+2, fusionSlam.getLandmarks().size());
     }
 
     /* Pre-condition:
@@ -167,7 +167,7 @@ class FusionSlamTest {
         trackedObjects.add(toA);
         this.trackedObjectEvent = new TrackedObjectsEvent(trackedObjects, 1);
 
-        Vector<LandMark> originLandmarks = fusionSlam.getLandmarks();
+        int expectedSize = fusionSlam.getLandmarks().size();
 
         //expected Object result calculation:
         ConcurrentLinkedQueue<CloudPoint> globalCoordinatesA = new ConcurrentLinkedQueue<CloudPoint>();
@@ -213,6 +213,6 @@ class FusionSlamTest {
         }
 
         //Ensure invariant
-        assertEquals(originLandmarks.size(), fusionSlam.getLandmarks().size());
+        assertEquals(expectedSize, fusionSlam.getLandmarks().size());
     }
 }

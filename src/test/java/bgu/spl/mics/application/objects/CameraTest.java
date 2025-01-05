@@ -70,7 +70,7 @@ class CameraTest {
         int currentTick = 1;
 
         //original DetectedObjectsList to compare
-        Vector<StampedDetectedObjects> originDetectedObjectsList = camera.getDetectedObjectsList();
+        Vector<StampedDetectedObjects> originDetectedObjectsList = new Vector<>(camera.getDetectedObjectsList());
         originDetectedObjectsList.remove(camera.getDetectedObjectsAtTime(1));
 
         StampedDetectedObjects result = camera.prepareData(currentTick);
