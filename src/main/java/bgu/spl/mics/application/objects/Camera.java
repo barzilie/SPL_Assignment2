@@ -119,7 +119,6 @@ public class Camera {
                 }
             }
         }
-        //TODO: is there a chance that the for loop will not be entered? if so, what do we want to return?
         return new StampedDetectedObjects();
     }
             
