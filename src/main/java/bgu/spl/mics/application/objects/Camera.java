@@ -61,10 +61,6 @@ public class Camera {
         this.detectedObjectsList = detectedObjectsList;
         for(StampedDetectedObjects SDO: detectedObjectsList){
             if(SDO.getTime()>finishTime) finishTime = SDO.getTime();
-            ConcurrentLinkedQueue<DetectedObject> DOList = SDO.getDetectedObjectsList();
-            for(DetectedObject DO: DOList){
-                System.out.println(camera_key+" found: "+DO.getDescription());
-            }
         }
     }
 

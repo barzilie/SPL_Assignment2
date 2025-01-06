@@ -26,7 +26,7 @@ public class TimeService extends MicroService {
         this.tickTime = TickTime;
         this.duration = Duration;
         this.timeLeft = Duration;
-        System.out.println("time: " + duration);
+        System.out.println("total time: " + duration);
         initialize();
     }
 

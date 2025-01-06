@@ -128,12 +128,10 @@ public class JsonConfigHandler {
             System.out.println("Error: CamerasConfigurations is null.");
         }
         if (rootObject != null && rootObject.getLidars() != null && rootObject.getLidars().getLidarsObjects() != null) {
-            System.out.println("LIDAR IS NOT NULL IN ROOT");
             for (LiDarWorkerTracker lidar : rootObject.getLidars().getLidarsObjects()) {
                 lidar.setStatus(STATUS.UP);
                 lidar.setNumOfCameras(numOfCameras);
                 fusionSlam.incrementNumOfSensors();
-                System.out.println("LIDAR LOOP ENTERED");
                 microServices.add(new LiDarService(lidar, rootObject.getLidars().getLidars_data_path()));
             }
         } else {

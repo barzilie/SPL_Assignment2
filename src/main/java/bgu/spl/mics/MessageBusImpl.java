@@ -36,16 +36,12 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		ConcurrentLinkedQueue<MicroService> subscribedMicroServices = eventSubscribers.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>());
-		System.out.println("contain the next event: " + eventSubscribers.containsKey(type));
-		System.out.println("type "+type.toString());
 		subscribedMicroServices.add(m);
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		ConcurrentLinkedQueue<MicroService> subscribedMicroServices = broadcastSubscribers.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>());
-		System.out.println("contain the next event: " + broadcastSubscribers.containsKey(type));
-		System.out.println("type "+type.toString());
 		subscribedMicroServices.add(m);
 	}
 
@@ -106,10 +102,7 @@ public class MessageBusImpl implements MessageBus {
 
 				return f;
 			}
-			System.out.println("not entered SECOND ONLY if send event: " + Thread.currentThread()+" : "+e.getClass());
 		}
-		System.out.println(e.getClass().toString());
-		System.out.println("not entered 2 if send event: " + Thread.currentThread());
 		complete(e, null);
 		return null;
 	}

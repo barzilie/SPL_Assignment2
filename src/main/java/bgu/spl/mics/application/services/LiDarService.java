@@ -46,7 +46,6 @@ public class LiDarService extends MicroService {
         this.lidarFutures = new ConcurrentLinkedQueue<>();
         this.eventsToSend = new ConcurrentLinkedQueue<TrackedObjectsEvent>();
         initialize();
-        System.out.println("Lidar: " + LiDarWorkerTracker.getId());
     }
 
     /**
@@ -70,13 +69,7 @@ public class LiDarService extends MicroService {
                     }
                 }
             }
-            // System.out.println("LIDAR "+ this.lidarWT.getId());
-            // System.out.println("TIME: " + currentTick);
-            // System.out.println("CAMERAFINISH: " + this.cameraFinish);
-            // System.out.println("Events to send size " + eventsToSend.size());
-            // if(eventsToSend.size()>0){
-            //     System.out.println("next event send time in " + eventsToSend.peek().getTimeToSend());
-            // }
+
             if(eventsToSend.isEmpty() && cameraFinish){
                 lidarWT.setStatus(STATUS.DOWN);
                 terminate();
