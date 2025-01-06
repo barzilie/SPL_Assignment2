@@ -83,6 +83,15 @@ public class Camera {
         return false; 
     }
 
+    public String errorMsg(ConcurrentLinkedQueue<DetectedObject> detectedObjects){
+        for(DetectedObject d: detectedObjects){
+            if(d.getId().equals("ERROR")) return d.getDescription();
+        }
+        return null;
+
+    }
+
+
     public Boolean safeTermination(int currentTick){
         if(currentTick>finishTime){
             setStatus(STATUS.DOWN);
@@ -96,8 +105,8 @@ public class Camera {
         for(StampedDetectedObjects s: detectedObjectsList){
             if(s.getTime() == currentTick){
                 if(checkErrorId(s.getDetectedObjectsList())){
-                    StatisticalFolder.getInstance().setError("camera " + getId() + " disconnected");
-                    StatisticalFolder.getInstance().setFaultySensor(camera_key);
+                    StatisticalFolder.getInstance().setError(this.errorMsg(s.getDetectedObjectsList()));
+                    StatisticalFolder.getInstance().setFaultySensor("camera " + getId());
                     System.out.println("INTERRUPTED " + Thread.currentThread().getName() + "TIME: " + s.getTime() );
                     setStatus(STATUS.ERROR);
                     return null;

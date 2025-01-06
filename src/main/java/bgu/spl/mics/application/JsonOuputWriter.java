@@ -1,8 +1,10 @@
 package bgu.spl.mics.application;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -12,10 +14,15 @@ import com.google.gson.GsonBuilder;
 
 public class JsonOuputWriter {
 
-    public static void createOutput(Object StatisticalFolder){
+    public static void createOutput(Object StatisticalFolder, String path){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        try (FileWriter writer = new FileWriter("output_file.json")) {
+        //find parent path
+        Path coutputFilePath = Paths.get(path);
+        Path parentPath = coutputFilePath.getParent();
+
+        File file = new File(parentPath.toString() + "/output_file.json");
+        try (FileWriter writer = new FileWriter(file, true)) {
             gson.toJson(StatisticalFolder, writer);
             System.out.println("JSON data written to output.json");
         } catch (IOException e) {

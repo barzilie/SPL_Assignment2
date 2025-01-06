@@ -64,7 +64,7 @@ public class GurionRockRunner {
             catch(InterruptedException e){
 
             }
-            JsonOuputWriter.createOutput(SF);
+            JsonOuputWriter.createOutput(SF, configFile);
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error reading JSON file: " + e.getMessage());

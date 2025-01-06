@@ -16,7 +16,7 @@ public class LiDarWorkerTracker {
     private int frequency;
     private STATUS status;
     private int errorTime = -1;
-    private int numOfCameras;
+    private int numOfCameras = 0;
     private LiDarDataBase lidarDataBase;
     private ConcurrentLinkedQueue<TrackedObject> lastTrackedObjects;
 

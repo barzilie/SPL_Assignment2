@@ -38,6 +38,7 @@ public class TimeService extends MicroService {
     protected void initialize() {
         while(timeLeft>0 && !statisticalFolder.terminateClock()){
             sendBroadcast(new TickBroadcast());
+            System.out.println("time left is " + timeLeft );
             statisticalFolder.increaseSystemRuntime();
             try{
                 Thread.sleep(tickTime*1000);

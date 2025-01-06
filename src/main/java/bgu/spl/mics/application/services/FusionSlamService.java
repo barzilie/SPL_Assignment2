@@ -50,7 +50,7 @@ public class FusionSlamService extends MicroService {
             if(terminated.getSenderName().equals("TimeService")){
                 terminate();
             }
-            else{
+            else if (terminated.getSenderName().contains("LiDarService")|| terminated.getSenderName().contains("CameraService")){
                 numOfSensors--;
                 if(numOfSensors == 0){
                     this.fusionSlam.setTerminateClock();
