@@ -108,7 +108,9 @@ public class LiDarWorkerTracker {
             String objectId = object.getId();
             String ObjectDescription = object.getDescription();
             //THE actual check for cloudpoints is in retrieve function
+            System.out.println("OBJECT: " + objectId );
             StampedCloudPoints stampedCP = this.lidarDataBase.retrieveCloudPoint(detectionTime, objectId);
+            System.out.println("STAMPEDCP time: " + stampedCP);
             Vector<CloudPoint> coordinates = new Vector<CloudPoint>();
             for(List<Double> listCP: stampedCP.getCloudPoints()){
                 coordinates.add(new CloudPoint(listCP.get(0),listCP.get(1)));
