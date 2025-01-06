@@ -64,10 +64,13 @@ public class MessageBusImpl implements MessageBus {
 					if(recepients != null && !recepients.isEmpty()){
 						for(MicroService ms: recepients){
 							BlockingQueue<Message> q = microServiceQueues.get(ms);
-							synchronized(q){
-								q.add(b);
-								q.notifyAll(); 
-							}	
+							if(q!=null){
+								synchronized(q){
+									q.add(b);
+									q.notifyAll(); 
+								}
+							}
+	
 						}
 					}
 				}
@@ -96,7 +99,6 @@ public class MessageBusImpl implements MessageBus {
 						synchronized(q){ 
 							if(q!=null){
 								q.add(e);
-								//q.notifyAll(); //notifies the waiting thread that the queue is no longer empty
 							}
 						}
 					}

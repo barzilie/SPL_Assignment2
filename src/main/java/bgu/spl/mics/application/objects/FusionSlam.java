@@ -35,6 +35,8 @@ public class FusionSlam {
 
     public ConcurrentLinkedQueue<CloudPoint> convertToGlobal(TrackedObject trackedObject){
         ConcurrentLinkedQueue<CloudPoint> globalCoordinates = new ConcurrentLinkedQueue<CloudPoint>();
+        System.out.println("ctg TRACKEDOBJECT TIME: "+trackedObject.getTime() );
+        System.out.println("ctg POSES ACTUAL SIZE: " + poses.size());
         Pose p = poses.get(trackedObject.getTime()-1);
         double x_robot = p.getX();
         double y_robot = p.getY();
@@ -114,7 +116,9 @@ public class FusionSlam {
     }
 
     public boolean getPoseSize(TrackedObjectsEvent toe){
-        return this.poses.size()>=toe.getTrackedObjects().peek().getTime()-1;
+        System.out.println("POSES SIZE: " + poses.size());
+        System.out.println("first tracked object time: " + toe.getTrackedObjects().peek().getTime());
+        return this.poses.size()>=toe.getTrackedObjects().peek().getTime();
     }
 
     public void handlePastTrackedObjects() {
